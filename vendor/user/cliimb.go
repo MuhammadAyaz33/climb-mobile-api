@@ -734,7 +734,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 	m.SetBody("text/html", sendmessage)
 	//m.Attach("/home/Alex/lolcat.jpg")
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "testproject628@gmail.com", "hello123@")
+	d := gomail.NewDialer("smtp.gmail.com", 587, "testproject628@gmail.com", "hello1234@")
 
 	// Send the email to Bob, Cora and Dan.
 	if err := d.DialAndSend(m); err != nil {
