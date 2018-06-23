@@ -226,7 +226,7 @@ func AddUserPreferences(c echo.Context) (err error) {
 		item1 := getProduct{SubCategory: a}
 
 		newdata.AddItem(item1)
-		db.Update(result, newdata)
+		db.Update(result, res)
 	}
 	//db.Insert(res)
 	defer session.Close()
