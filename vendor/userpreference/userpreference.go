@@ -8,6 +8,7 @@ import (
 	"os"
 	"shared"
 
+	"github.com/ftloc/exception"
 	"github.com/labstack/echo"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -364,27 +365,45 @@ func UserPreferenceSuggestionContribution(c echo.Context) error {
 	if error != nil {
 		fmt.Println("error:", error)
 	}
-	fmt.Println(db)
+	//fmt.Println(db)
 
 	//email :=c.FormValue("email")
 	//email := res.UserID
 	var subcat = []postProduct{}
 	subcat = res.UserPreferences
-	fmt.Println(subcat[0].SubCategory)
+	//fmt.Println(subcat[0].SubCategory)
 
 	newdata := Contributionres{}
 	// newdata1 := ContributionData{}
+	if subcat == nil {
+		fmt.Println("no data")
+	} else {
+		for i := range subcat {
 
-	//sub := subcat[0].SubCategory
-	for i := range subcat {
-		fmt.Println(subcat[i].SubCategory)
-		results := ContributionData{}
-		err = db.Find(bson.M{"subcategories": subcat[i].SubCategory, "viewcount": bson.M{"$gt": 1}}).All(&results)
-		if results.UserID != "" {
-			newdata.AddItem11(results)
+			exception.Try(func() {
+				results := Contributionres{}
+				fmt.Println(subcat[i].SubCategory)
+				err = db.Find(bson.M{"subcategories": subcat[i].SubCategory, "viewcount": bson.M{"$gt": 1}}).All(&results.Data)
+				if results.Data != nil {
+					//fmt.Println(results)
+					for x := range results.Data {
+						//fmt.Println(len(results.Data))
+						//fmt.Println(x)
+						newdata.AddItem11(results.Data[x])
+					}
+
+				}
+			}).CatchAll(func(e interface{}) {
+				fmt.Println("no data")
+
+			}).Finally(func() {
+
+			})
+
 		}
-
 	}
+	//sub := subcat[0].SubCategory
+
 	//newdata.AddItem11(results.Data)
 
 	if err != nil {
