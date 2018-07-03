@@ -61,7 +61,10 @@ func main() {
 	//e.GET("/", following.GetAllData)
 	e.GET("/getallfollwerdata", following.GetAllData)
 	e.POST("/getfollower", following.Getfollower)
+	e.POST("/getfollowerbyemail", following.GetfollowerByEmail)
 	e.POST("/addmentor", following.AddMentor)
+	e.POST("/updateparentstatus", following.UpdateParentStatus)
+	e.POST("/updatemessagestatus", following.UpdateMessageStatus)
 	e.PUT("/unfollow", following.Unfollow)
 	e.PUT("/addfollower", following.Addfollower)
 
@@ -93,9 +96,11 @@ func main() {
 
 	e.GET("/getallmessages", message.GetAllMessages)
 	e.POST("/addusermessages", message.AddUserMessages)
-	e.POST("/getusermessages", message.GetUserMessages)
+	e.POST("/getusermessagesdetail", message.GetUserMessagesDetail)
+	e.POST("/getusermessages", message.GetUserChat)
 	e.PUT("/removeusermessages", message.RemoveUserMessages)
-	e.PUT("/markasread", message.MarkAsRead)
+	e.POST("/getuserchatstatus", message.GetUserChatStatus)
+	//e.PUT("/markasread", message.MarkAsRead)
 
 	// CONTRIBUTION LIKES / COMMENTS
 

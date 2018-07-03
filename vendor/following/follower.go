@@ -7,14 +7,19 @@ import (
 	"net/http"
 	"os"
 	"shared"
+	"strconv"
 
 	"github.com/labstack/echo"
+	"github.com/rs/xid"
 	"gopkg.in/mgo.v2/bson"
 )
 
 //data to get from db ***********************************************************
 type getProduct struct {
+	Followid       string
 	Userfollowerid string
+	ParentStatus   int
+	MessageStatus  int
 }
 type getData struct {
 	ID       bson.ObjectId `json:"_id" bson:"_id,omitempty"`
@@ -27,7 +32,10 @@ type res struct {
 
 //data from post********************************************************************
 type postProduct struct {
+	Followid       string `json:"followid"`
 	Userfollowerid string `json:"followersid"`
+	ParentStatus   int    `json:"parentstatus"`
+	MessageStatus  int    `json:"messagestatus"`
 }
 type postData struct {
 	ID       bson.ObjectId `json:"_id" bson:"_id,omitempty"`
@@ -36,6 +44,13 @@ type postData struct {
 }
 type Res struct {
 	Data []postData `json:"Data"`
+}
+
+type GetUserData struct {
+	UserID   string        `json:"userid"`
+	Follower []postProduct `json:"follower"`
+	Age      string        `json:"userage"`
+	FollowID string        `json:"followid"`
 }
 
 //GET *********************************************************************************
@@ -94,11 +109,11 @@ func Getfollower(c echo.Context) error {
 
 	//email :=c.FormValue("email")
 	email := res.UserID
-	fmt.Println("/n", email)
+	//fmt.Println("/n", email)
 	//password:=c.FormValue("password")
 
 	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
-	fmt.Println(email)
+	//fmt.Println(email)
 	err = db.Find(bson.M{"userid": email}).All(&results.Data)
 
 	if err != nil {
@@ -121,6 +136,76 @@ func Getfollower(c echo.Context) error {
 
 }
 
+func GetfollowerByEmail(c echo.Context) error {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
+	results := shared.UsergetData{}
+	follower := res{}
+
+	u := new(shared.UserpostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.UserpostData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.UserRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+
+	email := res.Email
+
+	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
+
+	err = db.Find(bson.M{"email": email}).One(&results)
+
+	if err != nil {
+		//log.Fatal(err)
+	}
+	hexid := fmt.Sprintf("%x", string(results.ID))
+	fmt.Println(hexid)
+	follower = GetfollowerById(hexid)
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&follower)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &follower)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &follower)
+
+}
+func GetfollowerById(userid string) res {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
+	results := res{}
+
+	err = db.Find(bson.M{"userid": userid}).All(&results.Data)
+
+	if err != nil {
+		//log.Fatal(err)
+	}
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+
+	defer session.Close()
+
+	return results
+
+}
+
 //POST *********************************************************************************
 func AddMentor(c echo.Context) (err error) {
 
@@ -131,10 +216,10 @@ func AddMentor(c echo.Context) (err error) {
 	//name =c.FormValue("name")
 	//fmt.Println(name)
 	//u:=new (postData)
-	u := new(postData)
+	u := new(GetUserData)
 	if err = c.Bind(&u); err != nil {
 	}
-	res := postData{}
+	res := GetUserData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
 	b, err := json.Marshal(res)
@@ -153,10 +238,34 @@ func AddMentor(c echo.Context) (err error) {
 	result := getData{}
 	fmt.Println(res)
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
-
+	userfollower := postData{}
+	fid := xid.New()
 	if result.UserID == "" {
 		//fmt.Println("ni match hova add kr do")
-		db.Insert(res)
+		userfollower.UserID = res.UserID
+		// userfollower.Follower[0].Userfollowerid = res.Userfollowerid
+		// userfollower.Follower[0].ParentStatus = 0
+		// userfollower.Follower[0].MessageStatus = 0
+		var agestatus int
+		var msgstatus int
+		age, err := strconv.Atoi(res.Age)
+		if err != nil {
+			fmt.Println(err)
+			//fmt.Println(age)
+		}
+
+		if age < 18 {
+			agestatus = 0
+			msgstatus = 0
+		} else {
+			agestatus = 1
+			msgstatus = 1
+		}
+
+		item1 := postProduct{Followid: fid.String(), Userfollowerid: res.Follower[0].Userfollowerid, ParentStatus: agestatus, MessageStatus: msgstatus}
+
+		userfollower.AddItem11(item1)
+		db.Insert(userfollower)
 	} else {
 		//fmt.Println("match ho geya hai update kro")
 
@@ -164,8 +273,22 @@ func AddMentor(c echo.Context) (err error) {
 		newdata = result
 
 		a := res.Follower[0].Userfollowerid
+		var agestatus int
+		var msgstatus int
+		age, err := strconv.Atoi(res.Age)
+		if err != nil {
+			fmt.Println(err)
+			//fmt.Println(age)
+		}
+		if age < 18 {
+			agestatus = 0
+			msgstatus = 0
+		} else {
+			agestatus = 1
+			msgstatus = 1
+		}
 
-		item1 := getProduct{Userfollowerid: a}
+		item1 := getProduct{Followid: fid.String(), Userfollowerid: a, ParentStatus: agestatus, MessageStatus: msgstatus}
 
 		newdata.AddItem(item1)
 		db.Update(result, newdata)
@@ -178,6 +301,10 @@ func AddMentor(c echo.Context) (err error) {
 }
 
 //
+func (box *postData) AddItem11(item postProduct) []postProduct {
+	box.Follower = append(box.Follower, item)
+	return box.Follower
+}
 
 func Unfollow(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -277,4 +404,112 @@ func Addfollower(c echo.Context) (err error) {
 func (box *getData) AddItem(item getProduct) []getProduct {
 	box.Follower = append(box.Follower, item)
 	return box.Follower
+}
+
+func UpdateParentStatus(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
+	results := getData{}
+	newdata := getData{}
+
+	u := new(GetUserData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := GetUserData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r Res
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res.Email)
+
+	//email :=c.FormValue("email")
+	//email := res.UserID
+	//fmt.Println("/n", email)
+	//password:=c.FormValue("password")
+
+	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
+	//fmt.Println(email)
+	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
+	newdata = results
+	if err != nil {
+		//log.Fatal(err)
+	}
+
+	for i := range results.Follower {
+		if results.Follower[i].Followid == res.FollowID {
+			newdata.Follower[i].ParentStatus = 1
+		}
+	}
+	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
+	db.Update(results, newdata)
+	defer session.Close()
+
+	return c.JSON(http.StatusOK, 1)
+
+}
+
+func UpdateMessageStatus(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
+	results := getData{}
+	newdata := getData{}
+
+	u := new(GetUserData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := GetUserData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r Res
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res.Email)
+
+	//email :=c.FormValue("email")
+	//email := res.UserID
+	//fmt.Println("/n", email)
+	//password:=c.FormValue("password")
+
+	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
+	//fmt.Println(email)
+	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
+	newdata = results
+	if err != nil {
+		//log.Fatal(err)
+	}
+
+	for i := range results.Follower {
+		if results.Follower[i].Followid == res.FollowID {
+			newdata.Follower[i].MessageStatus = 1
+		}
+	}
+	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
+	db.Update(results, newdata)
+	defer session.Close()
+
+	return c.JSON(http.StatusOK, 1)
+
 }
