@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"following"
 	message "messages"
+	"notification"
 	"preferences"
 	"user"
 	"userpreference"
@@ -110,6 +111,10 @@ func main() {
 	e.POST("/getlikesandcomments", favorites.GetLikesAndComments)
 	e.POST("/unlike", favorites.UnLike)
 	e.POST("/deletecomments", favorites.DeleteComment)
+
+	// HISTORY / NOTIFICATION
+	e.POST("/getmentorhistory", notification.GetUserMentorHistory)
+
 	// *****************************************************************
 	e.Logger.Fatal(e.Start(":8080"))
 	fmt.Println("start...")

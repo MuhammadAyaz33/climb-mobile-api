@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"notification"
 	"os"
 	"shared"
 
@@ -335,11 +336,15 @@ func AddLikes(c echo.Context) (err error) {
 
 		newdata.AddItemlikes(item2)
 		db.Update(result, newdata)
+
+		notification.AddMentorLikeHistory(res.ContributionID, res.Likes[0].LikeUserID)
+
 		defer session.Close()
 		return c.JSON(http.StatusOK, "like update")
 	} else {
 		//fmt.Println("new data add")
 		db.Insert(res)
+		notification.AddMentorLikeHistory(res.ContributionID, res.Likes[0].LikeUserID)
 		defer session.Close()
 		return c.JSON(http.StatusOK, "like added")
 	}

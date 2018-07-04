@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"notification"
 	"os"
 	"shared"
 	"strconv"
@@ -236,7 +237,7 @@ func AddMentor(c echo.Context) (err error) {
 		fmt.Println("error:", error)
 	}
 	result := getData{}
-	fmt.Println(res)
+	//fmt.Println(res)
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	userfollower := postData{}
 	fid := xid.New()
@@ -260,6 +261,7 @@ func AddMentor(c echo.Context) (err error) {
 		} else {
 			agestatus = 1
 			msgstatus = 1
+			notification.AddMentorFollwerHistory(res.Follower[0].Userfollowerid, res.UserID)
 		}
 
 		item1 := postProduct{Followid: fid.String(), Userfollowerid: res.Follower[0].Userfollowerid, ParentStatus: agestatus, MessageStatus: msgstatus}
@@ -268,6 +270,13 @@ func AddMentor(c echo.Context) (err error) {
 		db.Insert(userfollower)
 	} else {
 		//fmt.Println("match ho geya hai update kro")
+		for x := range result.Follower {
+			if result.Follower[x].Userfollowerid == res.Follower[0].Userfollowerid {
+				//db.Insert(res)
+				defer session.Close()
+				return c.JSON(http.StatusOK, "user already follow")
+			}
+		}
 
 		newdata := getData{}
 		newdata = result
@@ -286,6 +295,7 @@ func AddMentor(c echo.Context) (err error) {
 		} else {
 			agestatus = 1
 			msgstatus = 1
+			notification.AddMentorFollwerHistory(res.Follower[0].Userfollowerid, res.UserID)
 		}
 
 		item1 := getProduct{Followid: fid.String(), Userfollowerid: a, ParentStatus: agestatus, MessageStatus: msgstatus}
@@ -449,7 +459,9 @@ func UpdateParentStatus(c echo.Context) error {
 
 	for i := range results.Follower {
 		if results.Follower[i].Followid == res.FollowID {
+			notification.AddMentorFollwerHistory(results.Follower[i].Userfollowerid, res.UserID)
 			newdata.Follower[i].ParentStatus = 1
+
 		}
 	}
 	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
