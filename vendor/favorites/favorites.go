@@ -166,6 +166,7 @@ func AddComments(c echo.Context) (err error) {
 		//fmt.Println("new data added")
 		res.Comments[0].CommentID = mid.String()
 		db.Insert(res)
+		notification.AddMentorcommentHistory(res.ContributionID, res.Comments[0].CommentUserID)
 		defer session.Close()
 		return c.JSON(http.StatusOK, "comment added")
 	} else {
@@ -180,6 +181,7 @@ func AddComments(c echo.Context) (err error) {
 
 		newdata.AddItem(item1)
 		db.Update(result, newdata)
+		notification.AddMentorcommentHistory(res.ContributionID, res.Comments[0].CommentUserID)
 		defer session.Close()
 		return c.JSON(http.StatusOK, "comment added")
 	}

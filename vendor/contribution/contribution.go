@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"notification"
 	"os"
 	"shared"
 	"strings"
@@ -98,7 +99,9 @@ func Addcontribution(c echo.Context) (err error) {
 	//res.Images[0].Imagestatus
 	//fmt.Println(res)
 	res.ViewCount = 0
+	res.ContributionStatus = 1
 	db.Insert(res)
+
 	//fmt.Println(db)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
@@ -379,6 +382,7 @@ func UpdateAdminStatus(c echo.Context) (err error) {
 	newdata = result
 	newdata.AdminStatus = 1
 	db.Update(result, newdata)
+	notification.AddMentorCreatContributionHistory(result.UserID)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
 }
