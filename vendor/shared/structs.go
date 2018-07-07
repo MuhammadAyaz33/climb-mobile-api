@@ -31,6 +31,28 @@ type Userres struct {
 	Data []UsergetData
 }
 
+type UserinfogetData struct {
+	ID             bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	Email          string
+	CompanyName    string
+	FullName       string
+	Address        string
+	City           string
+	ZipCode        int
+	Bio            string
+	Age            string
+	ParentPhone    int
+	ParentEmail    string
+	AboutMe        string
+	Status         int
+	ParentStatus   int
+	ProfilePicture string
+	UserType       string
+}
+type Userinfores struct {
+	Data []UserinfogetData
+}
+
 type UserpostData struct {
 	ID             bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	Email          string        `json:"email"`

@@ -785,7 +785,7 @@ func ViewProfile(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	results := shared.Userres{}
+	results := shared.Userinfores{}
 
 	u := new(shared.UserpostData)
 	if err = c.Bind(&u); err != nil {
@@ -834,7 +834,7 @@ func ViewProfileById(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	results := shared.Userres{}
+	results := shared.Userinfores{}
 
 	u := new(shared.UserpostData)
 	if err = c.Bind(&u); err != nil {
