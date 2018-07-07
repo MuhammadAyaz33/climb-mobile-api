@@ -383,6 +383,9 @@ func UpdateAdminStatus(c echo.Context) (err error) {
 	newdata.AdminStatus = 1
 	db.Update(result, newdata)
 	notification.AddMentorCreatContributionHistory(result.UserID)
+	notification.AddChildCreatContributionHistory(result.UserID)
+	contributionid := fmt.Sprintf("%x", string(result.ID))
+	notification.AddAdminAproveContributionHistory(result.UserID, contributionid, result.Title)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
 }

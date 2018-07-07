@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"shared"
+	"user"
 
 	"github.com/labstack/echo"
 	"gopkg.in/mgo.v2/bson"
@@ -38,6 +39,27 @@ type MentorCreateContributionGet struct {
 	ContributionID       string
 	ContributionTitle    string
 }
+type ChildCreateContributionGet struct {
+	ChildID             string
+	ChildUserName       string
+	ChildProfilePicture string
+	ContributionID      string
+	ContributionTitle   string
+}
+type AproveMentorGet struct {
+	MentorID             string
+	MentorUserName       string
+	MentorProfilePicture string
+}
+type AproveMentorMsgGet struct {
+	MentorID             string
+	MentorUserName       string
+	MentorProfilePicture string
+}
+type AdminAproveContributionGet struct {
+	ContributionID    string
+	ContributionTitle string
+}
 
 type MentoryHistorygetData struct {
 	ID                       bson.ObjectId `json:"_id" bson:"_id,omitempty"`
@@ -46,6 +68,10 @@ type MentoryHistorygetData struct {
 	ContributionLikes        []LikesGet
 	ContributionComments     []CommentsGet
 	MentorCreateContribution []MentorCreateContributionGet
+	ChildCreateContribution  []ChildCreateContributionGet
+	MentorAprovel            []AproveMentorGet
+	MentorMsgAprovel         []AproveMentorMsgGet
+	AdminAproveContribution  []AdminAproveContributionGet
 }
 type res struct {
 	Data []MentoryHistorygetData
@@ -79,6 +105,27 @@ type MentorCreateContributionPost struct {
 	ContributionID       string `json:"contributionid"`
 	ContributionTitle    string `json:"contributiontitle"`
 }
+type ChildCreateContributionPost struct {
+	ChildID             string `json:"childid"`
+	ChildUserName       string `json:"childusername"`
+	ChildProfilePicture string `json:"childprofilepicture"`
+	ContributionID      string `json:"contributionid"`
+	ContributionTitle   string `json:"contributiontitle"`
+}
+type AproveMentorPost struct {
+	MentorID             string `json:"mentorid"`
+	MentorUserName       string `json:"mentorusername"`
+	MentorProfilePicture string `json:"mentorprofilepicture"`
+}
+type AproveMentorMsgPost struct {
+	MentorID             string `json:"mentorid"`
+	MentorUserName       string `json:"mentorusername"`
+	MentorProfilePicture string `json:"mentorprofilepicture"`
+}
+type AdminAproveContributionPost struct {
+	ContributionID    string `json:"contributionid"`
+	ContributionTitle string `json:"contributiontitle"`
+}
 type MentoryHistorypostData struct {
 	ID                       bson.ObjectId                  `json:"_id" bson:"_id,omitempty"`
 	UserID                   string                         `json:"userid"`
@@ -86,6 +133,10 @@ type MentoryHistorypostData struct {
 	ContributionLikes        []LikesPost                    `json:"contributionlikes"`
 	ContributionComments     []CommentsPost                 `json:"contributioncomments"`
 	MentorCreateContribution []MentorCreateContributionPost `json:"mentorcreatecontribution"`
+	ChildCreateContribution  []ChildCreateContributionPost  `json:"childcreatecontribution"`
+	MentorAprovel            []AproveMentorPost             `json:"mentoraprovel"`
+	MentorMsgAprovel         []AproveMentorMsgPost          `json:"mentormsgaprovel"`
+	AdminAproveContribution  []AdminAproveContributionPost  `json:"adminaprovecontribution"`
 }
 type Res struct {
 	Data []MentoryHistorypostData `json:"Data"`
@@ -116,10 +167,22 @@ func AddMentorFollwerHistory(userid string, followerid string) {
 		db.Insert(newfollower)
 		//fmt.Println(newfollower)
 	} else {
-		if result.Followers[0].UserFollowerID == followerid {
-			fmt.Println("follwer already added")
+		if len(result.Followers) > 0 {
+			fmt.Println("data available")
+			for i := range result.Followers {
+				if result.Followers[i].UserFollowerID == followerid {
+					fmt.Println("follwer already added")
+				} else {
+					fmt.Println("user exit update history")
+					newdata := MentoryHistorygetData{}
+					newdata = result
+					item := FollowerGet{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture}
+					newdata.AddItemGetFollow(item)
+					db.Update(result, newdata)
+				}
+			}
 		} else {
-			fmt.Println("user exit update history")
+			fmt.Println("no data available")
 			newdata := MentoryHistorygetData{}
 			newdata = result
 			item := FollowerGet{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture}
@@ -260,6 +323,28 @@ func UserInfo(userid bson.ObjectId) shared.UsergetData {
 	defer session.Close()
 	return results
 }
+func UserInfoByEmail(useremail string) shared.UsergetData {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
+	results := shared.UsergetData{}
+
+	if err != nil {
+	}
+
+	err = db.Find(bson.M{"email": useremail}).One(&results)
+
+	if err != nil {
+		//log.Fatal(err)
+	}
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return results
+}
 func ContributionInfo(contributionid bson.ObjectId) shared.ContributionData {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -337,6 +422,7 @@ func GetUserMentorHistory(c echo.Context) error {
 		defer session.Close()
 		return c.JSON(http.StatusOK, &results)
 	}
+	ParentInfo("mohd.kasimnazesser@gmail.com")
 	defer session.Close()
 
 	return c.JSON(http.StatusOK, &results)
@@ -356,38 +442,39 @@ func AddMentorCreatContributionHistory(mentorid string) {
 
 	if err != nil {
 
-	}
-	mentoridconv := bson.ObjectIdHex(mentorid)
-	mentoruserinfo := shared.UsergetData{}
-	mentoruserinfo = UserInfo(mentoridconv)
-	hexmentorid := fmt.Sprintf("%x", string(mentoruserinfo.ID))
+	} else {
+		mentoridconv := bson.ObjectIdHex(mentorid)
+		mentoruserinfo := shared.UsergetData{}
+		mentoruserinfo = UserInfo(mentoridconv)
+		hexmentorid := fmt.Sprintf("%x", string(mentoruserinfo.ID))
 
-	mentorcontributiondetail := shared.Contributionres{}
-	mentorcontributiondetail = MentorContributionInfo(mentorid)
-	l := len(mentorcontributiondetail.Data)
+		mentorcontributiondetail := shared.Contributionres{}
+		mentorcontributiondetail = MentorContributionInfo(mentorid)
+		l := len(mentorcontributiondetail.Data)
 
-	contributionid := fmt.Sprintf("%x", string(mentorcontributiondetail.Data[l-1].ID))
-	contributiontitle := mentorcontributiondetail.Data[l-1].Title
-	fmt.Println(mentorcontributiondetail.Data[l-1])
-	for i := range result.Followers {
-		userid := result.Followers[i].UserFollowerID
-		err = db.Find(bson.M{"userid": userid}).One(&followerresult)
-		if err != nil {
-			createcontribution := MentoryHistorypostData{}
-			createcontribution.UserID = userid
-			item := MentorCreateContributionPost{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
-			createcontribution.AddItemPostCreateContribution(item)
-			db.Insert(createcontribution)
-			fmt.Println("user not found add new data")
-		} else {
-			newdata := MentoryHistorygetData{}
-			newdata = followerresult
-			item := MentorCreateContributionGet{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
-			newdata.AddItemGetCreateContribution(item)
-			db.Update(followerresult, newdata)
-			fmt.Println("user found update data")
+		contributionid := fmt.Sprintf("%x", string(mentorcontributiondetail.Data[l-1].ID))
+		contributiontitle := mentorcontributiondetail.Data[l-1].Title
+		fmt.Println(mentorcontributiondetail.Data[l-1])
+		for i := range result.Followers {
+			userid := result.Followers[i].UserFollowerID
+			err = db.Find(bson.M{"userid": userid}).One(&followerresult)
+			if err != nil {
+				createcontribution := MentoryHistorypostData{}
+				createcontribution.UserID = userid
+				item := MentorCreateContributionPost{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+				createcontribution.AddItemPostCreateContribution(item)
+				db.Insert(createcontribution)
+				fmt.Println("user not found add new data")
+			} else {
+				newdata := MentoryHistorygetData{}
+				newdata = followerresult
+				item := MentorCreateContributionGet{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+				newdata.AddItemGetCreateContribution(item)
+				db.Update(followerresult, newdata)
+				fmt.Println("user found update data")
+			}
+
 		}
-
 	}
 
 }
@@ -399,4 +486,229 @@ func (box *MentoryHistorypostData) AddItemPostCreateContribution(item MentorCrea
 func (box *MentoryHistorygetData) AddItemGetCreateContribution(item MentorCreateContributionGet) []MentorCreateContributionGet {
 	box.MentorCreateContribution = append(box.MentorCreateContribution, item)
 	return box.MentorCreateContribution
+}
+func ParentInfo(kidemail string) user.ParentgetData {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
+	results := user.ParentgetData{}
+
+	if err != nil {
+	}
+
+	err = db.Find(bson.M{"kids": bson.M{"kidid": kidemail}}).One(&results)
+
+	if err != nil {
+		fmt.Println("no data")
+	} else {
+		fmt.Println(results)
+	}
+
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return results
+}
+func AddChildCreatContributionHistory(mentorid string) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	kididconv := bson.ObjectIdHex(mentorid)
+	kiduserinfo := shared.UsergetData{}
+	kiduserinfo = UserInfo(kididconv)
+	kidemail := kiduserinfo.Email
+
+	childinfo := user.ParentgetData{}
+	childinfo = ParentInfo(kidemail)
+	if childinfo.ParentEmail != "" {
+		parentinfo := shared.UsergetData{}
+		parentinfo = UserInfoByEmail(childinfo.ParentEmail)
+
+		parentid := fmt.Sprintf("%x", string(parentinfo.ID))
+		result := MentoryHistorygetData{}
+		err = db.Find(bson.M{"userid": parentid}).One(&result)
+		if err != nil {
+			createcontribution := MentoryHistorypostData{}
+			createcontribution.UserID = parentid
+			childid := fmt.Sprintf("%x", string(kiduserinfo.ID))
+
+			childcontributiondetail := shared.Contributionres{}
+			childcontributiondetail = MentorContributionInfo(mentorid)
+			l := len(childcontributiondetail.Data)
+			contributionid := fmt.Sprintf("%x", string(childcontributiondetail.Data[l-1].ID))
+			contributiontitle := childcontributiondetail.Data[l-1].Title
+
+			item := ChildCreateContributionPost{ChildID: childid, ChildUserName: kiduserinfo.FullName, ChildProfilePicture: kiduserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+			createcontribution.AddItemPostCreateContributionKid(item)
+			db.Insert(createcontribution)
+		} else {
+			childid := fmt.Sprintf("%x", string(kiduserinfo.ID))
+			childcontributiondetail := shared.Contributionres{}
+			childcontributiondetail = MentorContributionInfo(mentorid)
+			l := len(childcontributiondetail.Data)
+			contributionid := fmt.Sprintf("%x", string(childcontributiondetail.Data[l-1].ID))
+			contributiontitle := childcontributiondetail.Data[l-1].Title
+
+			newdata := MentoryHistorygetData{}
+			newdata = result
+			item := ChildCreateContributionGet{ChildID: childid, ChildUserName: kiduserinfo.FullName, ChildProfilePicture: kiduserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+			newdata.AddItemGetCreateContributionKid(item)
+			db.Update(result, newdata)
+		}
+	}
+
+}
+
+func (box *MentoryHistorypostData) AddItemPostCreateContributionKid(item ChildCreateContributionPost) []ChildCreateContributionPost {
+	box.ChildCreateContribution = append(box.ChildCreateContribution, item)
+	return box.ChildCreateContribution
+}
+func (box *MentoryHistorygetData) AddItemGetCreateContributionKid(item ChildCreateContributionGet) []ChildCreateContributionGet {
+	box.ChildCreateContribution = append(box.ChildCreateContribution, item)
+	return box.ChildCreateContribution
+}
+func AddMentorAproveHistory(Userid string, followerid string) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// UserIDconv := bson.ObjectIdHex(Userid)
+	// userinfo := shared.UsergetData{}
+	// userinfo = UserInfo(UserIDconv)
+
+	followerIDconv := bson.ObjectIdHex(followerid)
+	followerinfo := shared.UsergetData{}
+	followerinfo = UserInfo(followerIDconv)
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		mentoraprove := MentoryHistorypostData{}
+		mentoraprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		item := AproveMentorPost{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		mentoraprove.AddItemPostAproveMentor(item)
+		db.Insert(mentoraprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+
+		item := AproveMentorGet{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		newdata.AddItemGetAproveMentor(item)
+
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+
+}
+func (box *MentoryHistorypostData) AddItemPostAproveMentor(item AproveMentorPost) []AproveMentorPost {
+	box.MentorAprovel = append(box.MentorAprovel, item)
+	return box.MentorAprovel
+}
+func (box *MentoryHistorygetData) AddItemGetAproveMentor(item AproveMentorGet) []AproveMentorGet {
+	box.MentorAprovel = append(box.MentorAprovel, item)
+	return box.MentorAprovel
+}
+
+func AddMentorMsgAproveHistory(Userid string, followerid string) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// UserIDconv := bson.ObjectIdHex(Userid)
+	// userinfo := shared.UsergetData{}
+	// userinfo = UserInfo(UserIDconv)
+
+	followerIDconv := bson.ObjectIdHex(followerid)
+	followerinfo := shared.UsergetData{}
+	followerinfo = UserInfo(followerIDconv)
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		mentoraprove := MentoryHistorypostData{}
+		mentoraprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		item := AproveMentorMsgPost{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		mentoraprove.AddItemPostAproveMentorMsg(item)
+		db.Insert(mentoraprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+
+		item := AproveMentorMsgGet{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		newdata.AddItemGetAproveMentorMsg(item)
+
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+
+}
+func (box *MentoryHistorypostData) AddItemPostAproveMentorMsg(item AproveMentorMsgPost) []AproveMentorMsgPost {
+	box.MentorMsgAprovel = append(box.MentorMsgAprovel, item)
+	return box.MentorMsgAprovel
+}
+func (box *MentoryHistorygetData) AddItemGetAproveMentorMsg(item AproveMentorMsgGet) []AproveMentorMsgGet {
+	box.MentorMsgAprovel = append(box.MentorMsgAprovel, item)
+	return box.MentorMsgAprovel
+}
+
+func AddAdminAproveContributionHistory(Userid string, contributionid string, contributiontitle string) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		adminaprove := MentoryHistorypostData{}
+		adminaprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		item := AdminAproveContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle}
+		adminaprove.AddItemPostAdminAprove(item)
+		db.Insert(adminaprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+
+		item := AdminAproveContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle}
+		newdata.AddItemGetAdminAprove(item)
+
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+
+}
+func (box *MentoryHistorypostData) AddItemPostAdminAprove(item AdminAproveContributionPost) []AdminAproveContributionPost {
+	box.AdminAproveContribution = append(box.AdminAproveContribution, item)
+	return box.AdminAproveContribution
+}
+func (box *MentoryHistorygetData) AddItemGetAdminAprove(item AdminAproveContributionGet) []AdminAproveContributionGet {
+	box.AdminAproveContribution = append(box.AdminAproveContribution, item)
+	return box.AdminAproveContribution
 }

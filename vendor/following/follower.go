@@ -462,10 +462,12 @@ func UpdateParentStatus(c echo.Context) error {
 			notification.AddMentorFollwerHistory(results.Follower[i].Userfollowerid, res.UserID)
 			newdata.Follower[i].ParentStatus = 1
 
+			notification.AddMentorAproveHistory(res.UserID, results.Follower[i].Userfollowerid)
 		}
 	}
 	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
 	db.Update(results, newdata)
+
 	defer session.Close()
 
 	return c.JSON(http.StatusOK, 1)
@@ -516,10 +518,12 @@ func UpdateMessageStatus(c echo.Context) error {
 	for i := range results.Follower {
 		if results.Follower[i].Followid == res.FollowID {
 			newdata.Follower[i].MessageStatus = 1
+			notification.AddMentorMsgAproveHistory(res.UserID, results.Follower[i].Userfollowerid)
 		}
 	}
 	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
 	db.Update(results, newdata)
+
 	defer session.Close()
 
 	return c.JSON(http.StatusOK, 1)
