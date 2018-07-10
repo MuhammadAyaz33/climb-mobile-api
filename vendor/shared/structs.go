@@ -75,9 +75,47 @@ type UserpostData struct {
 type UserRes struct {
 	Data []UserpostData `json:"Data"`
 }
+
 type UpdateData struct {
 	old    UserpostData
 	change UserpostData
+}
+
+// 	BECOME A MENTOR
+type BMentorgetData struct {
+	ID                   bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	UserEmail            string
+	UserID               string
+	UserName             string
+	Industory            string
+	SkilLevel            string
+	Experience           string
+	NumberOfContribution int
+	Motivation           string
+	UserAge              int
+	AdminStatus          int
+	ParentStatus         int
+}
+type BMentorres struct {
+	Data []UserinfogetData
+}
+
+type BMentorpostData struct {
+	ID                   bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	UserEmail            string        `json:"useremail"`
+	UserID               string        `json:"userid"`
+	UserName             string        `json:"username"`
+	Industory            string        `json:"industory"`
+	SkilLevel            string        `json:"skillevel"`
+	Experience           string        `json:"experience"`
+	NumberOfContribution int           `json:"numberofcontribution"`
+	Motivation           string        `json:"motivation"`
+	UserAge              int           `json:"userage"`
+	AdminStatus          int           `json:"adminstatus"`
+	ParentStatus         int           `json:"parentstatus"`
+}
+type BMentorRes struct {
+	Data []UserpostData `json:"Data"`
 }
 
 // 	EMAIL VERIFICATION DATA ******************
@@ -245,4 +283,5 @@ const (
 	PARENTCOLLECTION               = "parent"
 	VIEWCOLLECTION                 = "contributionview"
 	MENTORHISTORYCOLLECTION        = "mentorhistory"
+	MENTORREQUESTCOLLECTION        = "mentorrequest"
 )
