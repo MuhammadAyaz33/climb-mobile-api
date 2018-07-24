@@ -90,14 +90,17 @@ type BMentorgetData struct {
 	Industory            string
 	SkilLevel            string
 	Experience           string
+	WorkedFor            string
+	CompanyName          string
 	NumberOfContribution int
-	Motivation           string
+	MotivationTxt        string
+	Donation             int
 	UserAge              int
 	AdminStatus          int
 	ParentStatus         int
 }
 type BMentorres struct {
-	Data []UserinfogetData
+	Data []BMentorgetData
 }
 
 type BMentorpostData struct {
@@ -108,8 +111,11 @@ type BMentorpostData struct {
 	Industory            string        `json:"industory"`
 	SkilLevel            string        `json:"skillevel"`
 	Experience           string        `json:"experience"`
+	WorkedFor            string        `json:"workedfor"`
+	CompanyName          string        `json:"companyname"`
 	NumberOfContribution int           `json:"numberofcontribution"`
-	Motivation           string        `json:"motivation"`
+	MotivationTxt        string        `json:"motivationTxt"`
+	Donation             int           `json:"donation"`
 	UserAge              int           `json:"userage"`
 	AdminStatus          int           `json:"adminstatus"`
 	ParentStatus         int           `json:"parentstatus"`

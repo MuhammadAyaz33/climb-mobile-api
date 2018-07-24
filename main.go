@@ -5,6 +5,7 @@ import (
 	"favorites"
 	"fmt"
 	"following"
+	"mentor"
 	message "messages"
 	"notification"
 	"preferences"
@@ -114,6 +115,12 @@ func main() {
 
 	// HISTORY / NOTIFICATION
 	e.POST("/getmentorhistory", notification.GetUserMentorHistory)
+
+	// Become a Mentor
+
+	e.POST("/becomementor", mentor.BecomeMentorRequest)
+	e.GET("/admingetmentorrequests", mentor.GetAllMentorAdminRequest)
+	e.POST("/getparentmentorrequest", mentor.GetMentorParentsRequest)
 
 	// *****************************************************************
 	e.Logger.Fatal(e.Start(":8080"))
