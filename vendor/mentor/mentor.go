@@ -16,6 +16,10 @@ type userRequest struct {
 	UserEmail string `json:"parentemail"`
 }
 
+type statusChangeRequest struct {
+	ID bson.ObjectId `json:"_id"`
+}
+
 //	PARENT PROFILE DATA ****************
 
 type GetKid struct {
@@ -88,7 +92,7 @@ func BecomeMentorRequest(c echo.Context) (err error) {
 	}
 	//db.Insert(res)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
+	return c.JSON(http.StatusOK, "request submited")
 
 }
 func GetAllMentorAdminRequest(c echo.Context) error {
@@ -117,9 +121,8 @@ func GetAllMentorAdminRequest(c echo.Context) error {
 }
 func GetMentorParentsRequest(c echo.Context) error {
 
-	//session, err := shared.ConnectMongo(shared.DBURL)
-	//db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
-	//results := shared.Userinfores{}
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 
 	u := new(userRequest)
 	if err := c.Bind(&u); err != nil {
@@ -142,21 +145,24 @@ func GetMentorParentsRequest(c echo.Context) error {
 	}
 	kiddata := ParentgetData{}
 	kiddata = GetParentKids(res.UserEmail)
+	results := shared.BMentorres{}
+	kidrequest := shared.BMentorgetData{}
+	for x := range kiddata.Kids {
+		fmt.Println(kiddata.Kids[x].KidID)
+		kidemail := kiddata.Kids[x].KidID
+		err = db.Find(bson.M{"useremail": kidemail, "parentstatus": 0}).One(&kidrequest)
+		if err == nil {
+			results.Data = append(results.Data, kidrequest)
+		}
 
-	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
+	}
 
-	// err = db.Find(bson.M{"_id": email}).All(&results.Data)
-
-	// if err != nil {
-	// 	//log.Fatal(err)
-	// }
-	//fmt.Println(results)
-	buff, _ := json.Marshal(&kiddata)
+	buff, _ := json.Marshal(&results)
 	//fmt.Println(string(buff))
 
-	json.Unmarshal(buff, &kiddata)
-	//defer session.Close()
-	return c.JSON(http.StatusOK, &kiddata)
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &results)
 
 }
 func GetParentKids(parentemail string) ParentgetData {
@@ -164,10 +170,6 @@ func GetParentKids(parentemail string) ParentgetData {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
 	results := ParentgetData{}
-
-	//email :=c.FormValue("email")
-
-	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
 
 	err = db.Find(bson.M{"parentemail": parentemail}).One(&results)
 
@@ -177,4 +179,73 @@ func GetParentKids(parentemail string) ParentgetData {
 	fmt.Println(results)
 	defer session.Close()
 	return results
+}
+
+func UpdateParentStatus(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+	results := shared.BMentorgetData{}
+	newdata := shared.BMentorgetData{}
+
+	u := new(statusChangeRequest)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := statusChangeRequest{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	err = db.Find(bson.M{"_id": res.ID}).One(&results)
+	newdata = results
+	if err != nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, 0)
+	}
+	newdata.ParentStatus = 1
+	err = db.Find(bson.M{"_id": res.ID}).One(&results)
+	db.Update(results, newdata)
+
+	defer session.Close()
+	return c.JSON(http.StatusOK, 1)
+
+}
+func UpdateAdminStatus(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+	results := shared.BMentorgetData{}
+	newdata := shared.BMentorgetData{}
+
+	u := new(statusChangeRequest)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := statusChangeRequest{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	err = db.Find(bson.M{"_id": res.ID}).One(&results)
+	newdata = results
+	if err != nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, 0)
+	}
+	newdata.AdminStatus = 1
+	err = db.Find(bson.M{"_id": res.ID}).One(&results)
+	db.Update(results, newdata)
+
+	defer session.Close()
+	return c.JSON(http.StatusOK, 1)
+
 }

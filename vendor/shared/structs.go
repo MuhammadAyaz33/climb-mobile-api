@@ -108,14 +108,14 @@ type BMentorpostData struct {
 	UserEmail            string        `json:"useremail"`
 	UserID               string        `json:"userid"`
 	UserName             string        `json:"username"`
-	Industory            string        `json:"industory"`
+	Industory            string        `json:"industry"`
 	SkilLevel            string        `json:"skillevel"`
 	Experience           string        `json:"experience"`
 	WorkedFor            string        `json:"workedfor"`
 	CompanyName          string        `json:"companyname"`
 	NumberOfContribution int           `json:"numberofcontribution"`
 	MotivationTxt        string        `json:"motivationTxt"`
-	Donation             int           `json:"donation"`
+	Donation             bool          `json:"donation"`
 	UserAge              int           `json:"userage"`
 	AdminStatus          int           `json:"adminstatus"`
 	ParentStatus         int           `json:"parentstatus"`
