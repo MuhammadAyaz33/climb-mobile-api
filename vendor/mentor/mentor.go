@@ -15,6 +15,12 @@ import (
 type userRequest struct {
 	UserEmail string `json:"parentemail"`
 }
+type getMentorRequest struct {
+	UserID string `json:"userid"`
+}
+type mentorRequestResponse struct {
+	Status int `json:"status"`
+}
 
 type statusChangeRequest struct {
 	ID bson.ObjectId `json:"_id"`
@@ -247,5 +253,46 @@ func UpdateAdminStatus(c echo.Context) error {
 
 	defer session.Close()
 	return c.JSON(http.StatusOK, 1)
+}
+func GetMentorRequest(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+
+	u := new(getMentorRequest)
+	if err := c.Bind(&u); err != nil {
+	}
+	res := getMentorRequest{}
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.UserRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	result := shared.BMentorgetData{}
+	response := mentorRequestResponse{}
+
+	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
+	if err != nil {
+		response.Status = 0
+		defer session.Close()
+		return c.JSON(http.StatusOK, &response)
+		//results.Data = append(results.Data, kidrequest)
+	}
+	response.Status = 1
+	buff, _ := json.Marshal(&response)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &response)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &response)
 
 }

@@ -123,6 +123,9 @@ func main() {
 	e.POST("/getparentmentorrequest", mentor.GetMentorParentsRequest)
 	e.POST("/updatementorparentrequest", mentor.UpdateParentStatus)
 	e.POST("/updatementoradminrequest", mentor.UpdateAdminStatus)
+	e.POST("/updatementoradminrequest", mentor.UpdateAdminStatus)
+	e.POST("/getmentorrequeststatus", mentor.GetMentorRequest)
+	e.POST("/remainingcontributioncheck", contribution.RemainingContributionCheck)
 
 	// *****************************************************************
 	e.Logger.Fatal(e.Start(":8080"))

@@ -8,6 +8,7 @@ import (
 	"os"
 	"shared"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo"
 	"gopkg.in/mgo.v2/bson"
@@ -68,11 +69,7 @@ func Addcontribution(c echo.Context) (err error) {
 	}
 	audiopath := res.AudioPath
 	converimage := res.Coverpage
-
 	profilepicture := res.UserProfilePicture
-
-	//fmt.Println(len(imagestatus))
-
 	staticpath := shared.FILEBUCKETURL
 	for i := range res.Images {
 		res.Images[i].Imagestatus = staticpath + res.Images[i].Imagestatus
@@ -82,26 +79,26 @@ func Addcontribution(c echo.Context) (err error) {
 	} else {
 		res.AudioPath = ""
 	}
+	if res.Coverpage != "" {
+		res.Coverpage = staticpath + converimage
+	} else {
+		res.Coverpage = ""
+	}
 
-	res.Coverpage = staticpath + converimage
 	if profilepicture != "" {
 		if strings.Contains(profilepicture, staticpath) {
 			res.UserProfilePicture = profilepicture
 		} else {
 			res.UserProfilePicture = staticpath + profilepicture
 		}
-
-		//res.UserProfilePicture = staticpath + profilepicture
 	} else {
 		res.UserProfilePicture = ""
 	}
-
-	//res.Images[0].Imagestatus
-	//fmt.Println(res)
 	res.ViewCount = 0
-	res.ContributionStatus = 1
+	currentdate := time.Now().UTC()
+	//date := currentdate.Format("2006-01-02 3:4:5 PM")
+	res.ContributionPostDate = currentdate
 	db.Insert(res)
-
 	//fmt.Println(db)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
@@ -342,10 +339,10 @@ func UpdateContributionStatus(c echo.Context) (err error) {
 	result := shared.ContributionData{}
 	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"_id": res.ID}).One(&result)
-	res.ContributionStatus = 1
+	res.ContributionStatus = ""
 	newdata := shared.ContributionData{}
 	newdata = result
-	newdata.ContributionStatus = 1
+	newdata.ContributionStatus = ""
 	db.Update(result, newdata)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
@@ -377,7 +374,7 @@ func UpdateAdminStatus(c echo.Context) (err error) {
 	result := shared.ContributionData{}
 	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"_id": res.ID}).One(&result)
-	res.ContributionStatus = 1
+	// res.ContributionStatus = 1
 	newdata := shared.ContributionData{}
 	newdata = result
 	newdata.AdminStatus = 1
@@ -485,5 +482,82 @@ func RemoveOneContribution(c echo.Context) (err error) {
 	db.Remove(result)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
+
+}
+func RemainingContributionCheck(c echo.Context) (err error) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	results := shared.Contributionres{}
+
+	u := new(shared.ContributionPostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.ContributionPostData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res.Email)
+	err = db.Find(bson.M{"userid": res.UserID, "adminstatus": 1}).All(&results.Data)
+
+	// if err != nil {
+	// 	//log.Fatal(err)
+	// }
+	userContributionCount := GetMentorRequest(res.UserID)
+
+	if results.Data == nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, &userContributionCount)
+	}
+	currentdate := time.Now().UTC()
+
+	currentyear, currentmonth, _ := currentdate.Date()
+	//fmt.Println(len(results.Data))
+	contributionCount := 0
+	for x := range results.Data {
+		contributiondate := results.Data[x].ContributionPostDate
+		//t, _ := time.Parse("2006-01-02", contributiondate)
+		contributionyear, contributionmonth, _ := contributiondate.Date()
+		if currentmonth == contributionmonth && currentyear == contributionyear {
+			contributionCount++
+		}
+
+	}
+	fmt.Println("total contribution count : ", contributionCount)
+
+	fmt.Println("user contribution count: ", userContributionCount)
+
+	remainingContribuiton := userContributionCount - contributionCount
+	fmt.Println("remaing contribution : ", remainingContribuiton)
+
+	defer session.Close()
+	return c.JSON(http.StatusOK, &remainingContribuiton)
+}
+func GetMentorRequest(userid string) int {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+
+	result := shared.BMentorgetData{}
+	//response := mentorRequestResponse{}
+
+	err = db.Find(bson.M{"userid": userid}).One(&result)
+	if err != nil {
+		defer session.Close()
+		return 0
+		//results.Data = append(results.Data, kidrequest)
+	}
+	defer session.Close()
+	return result.NumberOfContribution
 
 }

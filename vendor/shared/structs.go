@@ -26,6 +26,7 @@ type UsergetData struct {
 	ParentStatus   int
 	ProfilePicture string
 	UserType       string
+	MentorStatus   int
 }
 type Userres struct {
 	Data []UsergetData
@@ -202,24 +203,28 @@ type Getsubcategory struct {
 	Subcategory string
 }
 type ContributionData struct {
-	ID                 bson.ObjectId `json:"_id" bson:"_id,omitempty"`
-	UserEmail          string
-	UserID             string
-	UserFullName       string
-	UserProfilePicture string
-	Title              string
-	MainCategory       string
-	SubCategories      string
-	ContributionText   string
-	Videos             string
-	AudioPath          string
-	Images             []Getimageurl
-	Website            []Getwebsiteurl
-	Coverpage          string
-	Tags               []Gettag
-	ViewCount          int
-	ContributionStatus int
-	AdminStatus        int
+	ID                   bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	UserEmail            string
+	UserID               string
+	UserFullName         string
+	UserProfilePicture   string
+	Title                string
+	MainCategory         string
+	SubCategories        string
+	ContributionText     string
+	Videos               string
+	AudioPath            string
+	Images               []Getimageurl
+	Website              []Getwebsiteurl
+	Coverpage            string
+	Tags                 []Gettag
+	ViewCount            int
+	ContributionStatus   string
+	AdminStatus          int
+	Date                 string
+	ContributionType     string
+	Location             string
+	ContributionPostDate time.Time
 }
 type Contributionres struct {
 	Data []ContributionData
@@ -238,24 +243,28 @@ type Postsubcategory struct {
 	Subcategory string `json:"subcategory"`
 }
 type ContributionPostData struct {
-	ID                 bson.ObjectId   `json:"_id" bson:"_id,omitempty"`
-	UserEmail          string          `json:"useremail"`
-	UserID             string          `json:"userid"`
-	UserFullName       string          `json:"username"`
-	UserProfilePicture string          `json:"userprofilepicture"`
-	Title              string          `json:"title"`
-	MainCategory       string          `json:"maincategory"`
-	SubCategories      string          `json:"subcategories"`
-	ContributionText   string          `json:"contributiontext"`
-	Videos             string          `json:"videos"`
-	AudioPath          string          `json:"audiopath"`
-	Images             []Postimageurl  `json:"images"`
-	Website            []Getwebsiteurl `json:"website"`
-	Coverpage          string          `json:"coverpage"`
-	Tags               []Posttag       `json:"tags"`
-	ViewCount          int             `json:"view"`
-	ContributionStatus int             `json:"contributionstatus"`
-	AdminStatus        int             `json:"adminstatus"`
+	ID                   bson.ObjectId   `json:"_id" bson:"_id,omitempty"`
+	UserEmail            string          `json:"useremail"`
+	UserID               string          `json:"userid"`
+	UserFullName         string          `json:"username"`
+	UserProfilePicture   string          `json:"userprofilepicture"`
+	Title                string          `json:"title"`
+	MainCategory         string          `json:"maincategory"`
+	SubCategories        string          `json:"subcategories"`
+	ContributionText     string          `json:"contributiontext"`
+	Videos               string          `json:"videos"`
+	AudioPath            string          `json:"audiopath"`
+	Images               []Postimageurl  `json:"images"`
+	Website              []Getwebsiteurl `json:"website"`
+	Coverpage            string          `json:"coverpage"`
+	Tags                 []Posttag       `json:"tags"`
+	ViewCount            int             `json:"view"`
+	ContributionStatus   string          `json:"contributionstatus"`
+	AdminStatus          int             `json:"adminstatus"`
+	Date                 string          `json:"date"`
+	ContributionType     string          `json:"contributiontype"`
+	Location             string          `json:"location"`
+	ContributionPostDate time.Time       `json:"contributionpostdate"`
 }
 type ContributionRes struct {
 	Data []ContributionPostData `json:"Data"`

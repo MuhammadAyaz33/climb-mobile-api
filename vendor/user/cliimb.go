@@ -470,6 +470,8 @@ func Login(c echo.Context) error {
 			buff, _ := json.Marshal(&results)
 			//fmt.Println(string(buff))
 			defer session.Close()
+			mentorstatus := GetMentorRequest(email)
+			results.Data[0].MentorStatus = mentorstatus
 			json.Unmarshal(buff, &results)
 			return c.JSON(http.StatusOK, &results)
 		} else {
@@ -482,7 +484,29 @@ func Login(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, err)
 }
+func GetMentorRequest(useremail string) int {
 
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+
+	result := shared.BMentorgetData{}
+	//response := mentorRequestResponse{}
+
+	err = db.Find(bson.M{"useremail": useremail}).One(&result)
+	if err != nil {
+		defer session.Close()
+		return 0
+		//results.Data = append(results.Data, kidrequest)
+	}
+	if result.AdminStatus == 1 && result.ParentStatus == 1 {
+		defer session.Close()
+		return 1
+	} else {
+		defer session.Close()
+		return 0
+	}
+
+}
 func EditProfile(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
