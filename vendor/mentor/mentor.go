@@ -188,68 +188,76 @@ func GetParentKids(parentemail string) ParentgetData {
 }
 
 func UpdateParentStatus(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
-	results := shared.BMentorgetData{}
-	newdata := shared.BMentorgetData{}
 
-	u := new(statusChangeRequest)
+	u := new(shared.BMentorpostData)
 	if err = c.Bind(&u); err != nil {
 	}
-	res := statusChangeRequest{}
+	res := shared.BMentorpostData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
 	b, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	result := shared.BMentorpostData{}
 
-	err = db.Find(bson.M{"_id": res.ID}).One(&results)
-	newdata = results
+	err = db.Find(bson.M{"_id": res.ID}).One(&result)
 	if err != nil {
 		defer session.Close()
 		return c.JSON(http.StatusOK, 0)
+		//results.Data = append(results.Data, kidrequest)
 	}
+	// res.ContributionStatus = 1
+	newdata := shared.BMentorpostData{}
+	newdata = result
 	newdata.ParentStatus = 1
-	err = db.Find(bson.M{"_id": res.ID}).One(&results)
-	db.Update(results, newdata)
+	db.Update(result, newdata)
 
 	defer session.Close()
 	return c.JSON(http.StatusOK, 1)
 
 }
 func UpdateAdminStatus(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
-	results := shared.BMentorgetData{}
-	newdata := shared.BMentorgetData{}
 
-	u := new(statusChangeRequest)
+	u := new(shared.BMentorpostData)
 	if err = c.Bind(&u); err != nil {
 	}
-	res := statusChangeRequest{}
+	res := shared.BMentorpostData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
 	b, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	result := shared.BMentorpostData{}
 
-	err = db.Find(bson.M{"_id": res.ID}).One(&results)
-	newdata = results
+	err = db.Find(bson.M{"_id": res.ID}).One(&result)
 	if err != nil {
 		defer session.Close()
 		return c.JSON(http.StatusOK, 0)
+		//results.Data = append(results.Data, kidrequest)
 	}
+	// res.ContributionStatus = 1
+	newdata := shared.BMentorpostData{}
+	newdata = result
 	newdata.AdminStatus = 1
-	err = db.Find(bson.M{"_id": res.ID}).One(&results)
-	db.Update(results, newdata)
+	db.Update(result, newdata)
 
 	defer session.Close()
 	return c.JSON(http.StatusOK, 1)

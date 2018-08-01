@@ -47,6 +47,7 @@ func main() {
 	e.POST("/addview", contribution.AddView)
 	e.POST("/updatecontributionstatus", contribution.UpdateContributionStatus)
 	e.POST("/updateadminstatus", contribution.UpdateAdminStatus)
+	e.POST("/searchevent", contribution.SearchEvent)
 
 	// PREFERENCES FUNCTION
 
@@ -122,7 +123,6 @@ func main() {
 	e.GET("/admingetmentorrequests", mentor.GetAllMentorAdminRequest)
 	e.POST("/getparentmentorrequest", mentor.GetMentorParentsRequest)
 	e.POST("/updatementorparentrequest", mentor.UpdateParentStatus)
-	e.POST("/updatementoradminrequest", mentor.UpdateAdminStatus)
 	e.POST("/updatementoradminrequest", mentor.UpdateAdminStatus)
 	e.POST("/getmentorrequeststatus", mentor.GetMentorRequest)
 	e.POST("/remainingcontributioncheck", contribution.RemainingContributionCheck)

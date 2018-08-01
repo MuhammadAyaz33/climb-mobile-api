@@ -371,11 +371,11 @@ func UpdateAdminStatus(c echo.Context) (err error) {
 		fmt.Println("error:", error)
 	}
 	//fmt.Println(res)
-	result := shared.ContributionData{}
+	result := shared.ContributionPostData{}
 	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"_id": res.ID}).One(&result)
 	// res.ContributionStatus = 1
-	newdata := shared.ContributionData{}
+	newdata := shared.ContributionPostData{}
 	newdata = result
 	newdata.AdminStatus = 1
 	db.Update(result, newdata)
@@ -560,4 +560,36 @@ func GetMentorRequest(userid string) int {
 	defer session.Close()
 	return result.NumberOfContribution
 
+}
+
+func SearchEvent(c echo.Context) (err error) {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+
+	u := new(shared.ContributionPostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.ContributionPostData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res)
+	result := shared.Contributionres{}
+	//fmt.Println("%T \n", result)
+	err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": res.Location}).All(&result.Data)
+	//db.Update(result, res)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &result)
 }

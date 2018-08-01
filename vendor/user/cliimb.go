@@ -456,7 +456,8 @@ func Login(c echo.Context) error {
 		//log.Fatal(err)
 	}
 	//fmt.Println(results)
-
+	mentorstatus := GetMentorRequest(email)
+	fmt.Println("status changed : ", mentorstatus)
 	if results.Data == nil {
 		var Status = shared.ErrorCheckStatus{
 			Status: "0",
@@ -467,11 +468,10 @@ func Login(c echo.Context) error {
 		hash := results.Data[0].Password
 		check := comparePasswords(hash, []byte(password))
 		if check == true {
+			results.Data[0].MentorStatus = mentorstatus
 			buff, _ := json.Marshal(&results)
 			//fmt.Println(string(buff))
 			defer session.Close()
-			mentorstatus := GetMentorRequest(email)
-			results.Data[0].MentorStatus = mentorstatus
 			json.Unmarshal(buff, &results)
 			return c.JSON(http.StatusOK, &results)
 		} else {
@@ -498,7 +498,9 @@ func GetMentorRequest(useremail string) int {
 		return 0
 		//results.Data = append(results.Data, kidrequest)
 	}
+
 	if result.AdminStatus == 1 && result.ParentStatus == 1 {
+
 		defer session.Close()
 		return 1
 	} else {
