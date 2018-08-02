@@ -14,6 +14,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type UserRequest struct {
+	userRequest string `json:"userRequest"`
+}
+
 func ContributionGetAll(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -93,6 +97,11 @@ func Addcontribution(c echo.Context) (err error) {
 		}
 	} else {
 		res.UserProfilePicture = ""
+	}
+	if res.Tags != nil {
+		for x := range res.Tags {
+			res.Tags[x].Tag = strings.ToLower(res.Tags[x].Tag)
+		}
 	}
 	res.ViewCount = 0
 	currentdate := time.Now().UTC()
@@ -588,8 +597,61 @@ func SearchEvent(c echo.Context) (err error) {
 	//fmt.Println(res)
 	result := shared.Contributionres{}
 	//fmt.Println("%T \n", result)
-	err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": res.Location}).All(&result.Data)
+	err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": bson.RegEx{Pattern: res.Location, Options: "i"}}).All(&result.Data)
 	//db.Update(result, res)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &result)
+}
+func SearchSubContribution(c echo.Context) (err error) {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+
+	u := new(shared.ContributionPostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.ContributionPostData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	//os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res)
+	data := shared.Contributionres{}
+	resultsubcategory := shared.Contributionres{}
+	resulttag := shared.Contributionres{}
+	resultmaincategory := shared.Contributionres{}
+	//fmt.Println("%T \n", result)
+	//err = db.Find(bson.M{"$or": []bson.M{bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "sim"}}, bson.M{"tags": bson.M{"tag": bson.RegEx{"^.*" + res.SubCategories + "", "sm"}}}, bson.M{"maincategory": res.SubCategories}}}).All(&resultsubcategory.Data)
+	err = db.Find(bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "im"}}).All(&resultsubcategory.Data)
+	if resultsubcategory.Data != nil {
+		for x := range resultsubcategory.Data {
+			data.Data = append(data.Data, resultsubcategory.Data[x])
+		}
+	}
+
+	err = db.Find(bson.M{"tags": bson.M{"tag": strings.ToLower(res.SubCategories)}}).All(&resulttag.Data)
+	if resulttag.Data != nil {
+		for x := range resulttag.Data {
+			data.Data = append(data.Data, resulttag.Data[x])
+		}
+	}
+	err = db.Find(bson.M{"maincategory": res.SubCategories}).All(&resultmaincategory.Data)
+	if resultmaincategory.Data != nil {
+		for x := range resultmaincategory.Data {
+			data.Data = append(data.Data, resultmaincategory.Data[x])
+		}
+	}
+
+	defer session.Close()
+	return c.JSON(http.StatusOK, &data)
 }

@@ -48,6 +48,7 @@ func main() {
 	e.POST("/updatecontributionstatus", contribution.UpdateContributionStatus)
 	e.POST("/updateadminstatus", contribution.UpdateAdminStatus)
 	e.POST("/searchevent", contribution.SearchEvent)
+	e.POST("/searchingcontribution", contribution.SearchSubContribution)
 
 	// PREFERENCES FUNCTION
 
