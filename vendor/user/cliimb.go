@@ -120,6 +120,7 @@ func Adduser(c echo.Context) (err error) {
 		hash := hashAndSalt([]byte(res.Password))
 		res.Password = hash
 		res.UserType = "user"
+		res.MentorStatus = 0
 		db.Insert(res)
 
 	} else {

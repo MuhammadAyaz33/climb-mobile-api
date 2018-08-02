@@ -49,6 +49,7 @@ type UserinfogetData struct {
 	ParentStatus   int
 	ProfilePicture string
 	UserType       string
+	MentorStatus   int
 }
 type Userinfores struct {
 	Data []UserinfogetData
@@ -72,6 +73,7 @@ type UserpostData struct {
 	ParentStatus   int           `json:"parentstatus"`
 	ProfilePicture string        `json:"profilepicture"`
 	UserType       string        `json:"usertype"`
+	MentorStatus   int           `json:"mentorstatus"`
 }
 type UserRes struct {
 	Data []UserpostData `json:"Data"`
