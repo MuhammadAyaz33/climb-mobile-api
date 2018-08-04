@@ -597,7 +597,7 @@ func SearchEvent(c echo.Context) (err error) {
 	//fmt.Println(res)
 	result := shared.Contributionres{}
 	//fmt.Println("%T \n", result)
-	err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": bson.RegEx{Pattern: res.Location, Options: "i"}}).All(&result.Data)
+	err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": bson.RegEx{Pattern: res.Location, Options: "i"}, "contributiontype": "event"}).All(&result.Data)
 	//db.Update(result, res)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &result)
@@ -632,20 +632,20 @@ func SearchSubContribution(c echo.Context) (err error) {
 	resultmaincategory := shared.Contributionres{}
 	//fmt.Println("%T \n", result)
 	//err = db.Find(bson.M{"$or": []bson.M{bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "sim"}}, bson.M{"tags": bson.M{"tag": bson.RegEx{"^.*" + res.SubCategories + "", "sm"}}}, bson.M{"maincategory": res.SubCategories}}}).All(&resultsubcategory.Data)
-	err = db.Find(bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "im"}}).All(&resultsubcategory.Data)
+	err = db.Find(bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "im"}, "contributiontype": "contribution"}).All(&resultsubcategory.Data)
 	if resultsubcategory.Data != nil {
 		for x := range resultsubcategory.Data {
 			data.Data = append(data.Data, resultsubcategory.Data[x])
 		}
 	}
 
-	err = db.Find(bson.M{"tags": bson.M{"tag": strings.ToLower(res.SubCategories)}}).All(&resulttag.Data)
+	err = db.Find(bson.M{"tags": bson.M{"tag": strings.ToLower(res.SubCategories)}, "contributiontype": "contribution"}).All(&resulttag.Data)
 	if resulttag.Data != nil {
 		for x := range resulttag.Data {
 			data.Data = append(data.Data, resulttag.Data[x])
 		}
 	}
-	err = db.Find(bson.M{"maincategory": res.SubCategories}).All(&resultmaincategory.Data)
+	err = db.Find(bson.M{"maincategory": res.SubCategories, "contributiontype": "contribution"}).All(&resultmaincategory.Data)
 	if resultmaincategory.Data != nil {
 		for x := range resultmaincategory.Data {
 			data.Data = append(data.Data, resultmaincategory.Data[x])
