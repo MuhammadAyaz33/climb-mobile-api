@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"notification"
 	"os"
 	"shared"
 
@@ -220,6 +221,7 @@ func UpdateParentStatus(c echo.Context) error {
 	newdata = result
 	newdata.ParentStatus = 1
 	db.Update(result, newdata)
+	notification.AddParentMentorRequestApprove(result.UserID)
 
 	defer session.Close()
 	return c.JSON(http.StatusOK, 1)
@@ -258,6 +260,7 @@ func UpdateAdminStatus(c echo.Context) error {
 	newdata = result
 	newdata.AdminStatus = 1
 	db.Update(result, newdata)
+	notification.AddAdminMentorRequestApprove(result.UserID)
 
 	defer session.Close()
 	return c.JSON(http.StatusOK, 1)

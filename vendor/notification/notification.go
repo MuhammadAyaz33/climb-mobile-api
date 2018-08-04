@@ -64,6 +64,8 @@ type AdminAproveContributionGet struct {
 type MentoryHistorygetData struct {
 	ID                       bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	UserID                   string
+	AdminMentorRequest       bool
+	ParentMentorRequest      bool
 	Followers                []FollowerGet
 	ContributionLikes        []LikesGet
 	ContributionComments     []CommentsGet
@@ -129,6 +131,8 @@ type AdminAproveContributionPost struct {
 type MentoryHistorypostData struct {
 	ID                       bson.ObjectId                  `json:"_id" bson:"_id,omitempty"`
 	UserID                   string                         `json:"userid"`
+	AdminMentorRequest       bool                           `json:"adminmentorrequest"`
+	ParentMentorRequest      bool                           `json:"parentmentorrequest"`
 	Followers                []FollowerPost                 `json:"followers"`
 	ContributionLikes        []LikesPost                    `json:"contributionlikes"`
 	ContributionComments     []CommentsPost                 `json:"contributioncomments"`
@@ -711,4 +715,61 @@ func (box *MentoryHistorypostData) AddItemPostAdminAprove(item AdminAproveContri
 func (box *MentoryHistorygetData) AddItemGetAdminAprove(item AdminAproveContributionGet) []AdminAproveContributionGet {
 	box.AdminAproveContribution = append(box.AdminAproveContribution, item)
 	return box.AdminAproveContribution
+}
+
+func AddAdminMentorRequestApprove(Userid string) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		adminaprove := MentoryHistorypostData{}
+		adminaprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		adminaprove.AdminMentorRequest = true
+		db.Insert(adminaprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+		newdata.AdminMentorRequest = true
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+
+}
+func AddParentMentorRequestApprove(Userid string) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		adminaprove := MentoryHistorypostData{}
+		adminaprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		adminaprove.ParentMentorRequest = true
+		db.Insert(adminaprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+		newdata.ParentMentorRequest = true
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+
 }

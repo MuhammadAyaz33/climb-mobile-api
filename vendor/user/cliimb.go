@@ -649,6 +649,8 @@ func UpdateProfile(c echo.Context) (err error) {
 	db.Update(result, newdata)
 	result1 := shared.UsergetData{}
 	err = db.Find(bson.M{"email": res.Email}).One(&result1)
+	mentorstatus := GetMentorRequest(res.Email)
+	result1.MentorStatus = mentorstatus
 	defer session.Close()
 	return c.JSON(http.StatusOK, &result1)
 }
