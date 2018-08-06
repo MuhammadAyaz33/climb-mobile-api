@@ -94,7 +94,7 @@ func Adduser(c echo.Context) (err error) {
 		fmt.Println("error:", err)
 	}
 	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes
@@ -177,7 +177,7 @@ func PasswordVerification(c echo.Context) (err error) {
 		fmt.Println("error:", err)
 	}
 	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	// os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes
@@ -260,7 +260,7 @@ func RegistrationVerfication(c echo.Context) error {
 		fmt.Println("error:", err)
 	}
 	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	// os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes
@@ -570,7 +570,7 @@ func UpdateProfile(c echo.Context) (err error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	os.Stdout.Write(b)
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes
@@ -579,14 +579,17 @@ func UpdateProfile(c echo.Context) (err error) {
 		fmt.Println("error:", error)
 	}
 	//fmt.Println(res)
-	result := shared.UsergetData{}
+	result := shared.UserUpdateData{}
 
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
-	newdata := shared.UsergetData{}
+
+	newdata := shared.UserUpdateData{}
 	newdata = result
 	if res.FullName != "" {
 		newdata.FullName = res.FullName
 	}
+
+	//fmt.Println(newdata.FullName)
 	if res.CompanyName != "" {
 		newdata.CompanyName = res.CompanyName
 	}
@@ -620,8 +623,7 @@ func UpdateProfile(c echo.Context) (err error) {
 	}
 	if res.ParentPhone != 0 {
 		newdata.ParentPhone = res.ParentPhone
-		fmt.Println("parent fone")
-		fmt.Println(newdata.ParentPhone)
+
 	}
 
 	if res.ProfilePicture != "" {
@@ -645,14 +647,17 @@ func UpdateProfile(c echo.Context) (err error) {
 		ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
 		//fmt.Println(maintoken)
 	}
-
+	// fmt.Println("result ---------", newdata)
+	// fmt.Println("result ---------", result)
+	//err = db.Find(bson.M{"email": res.Email}).One(&result)
 	db.Update(result, newdata)
+	//fmt.Println("result ---------", err1)
 	result1 := shared.UsergetData{}
 	err = db.Find(bson.M{"email": res.Email}).One(&result1)
 	mentorstatus := GetMentorRequest(res.Email)
 	result1.MentorStatus = mentorstatus
 	defer session.Close()
-	return c.JSON(http.StatusOK, &result1)
+	return c.JSON(http.StatusOK, result1)
 }
 func UpdateContributionProfilePic(picture string, email string) {
 	session, err := shared.ConnectMongo(shared.DBURL)

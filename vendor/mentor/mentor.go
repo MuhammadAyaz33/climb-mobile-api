@@ -141,8 +141,8 @@ func GetMentorParentsRequest(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("parent get kid mentor request")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes
@@ -202,6 +202,7 @@ func UpdateParentStatus(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
+	fmt.Println("update parent status of mentor request")
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes
 	error := json.Unmarshal(jsonBlob, &r)
@@ -210,7 +211,7 @@ func UpdateParentStatus(c echo.Context) error {
 	}
 	result := shared.BMentorpostData{}
 
-	err = db.Find(bson.M{"_id": res.ID}).One(&result)
+	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
 		defer session.Close()
 		return c.JSON(http.StatusOK, 0)
@@ -235,12 +236,13 @@ func UpdateAdminStatus(c echo.Context) error {
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.BMentorpostData{}
-	//fmt.Println("this is C:",postData{})
+	//fmt.Println("this is C:", postData{})
 	res = *u
 	b, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
+	fmt.Println("update admin status of mentor request")
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes
 	error := json.Unmarshal(jsonBlob, &r)
@@ -249,7 +251,7 @@ func UpdateAdminStatus(c echo.Context) error {
 	}
 	result := shared.BMentorpostData{}
 
-	err = db.Find(bson.M{"_id": res.ID}).One(&result)
+	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
 		defer session.Close()
 		return c.JSON(http.StatusOK, 0)
@@ -279,8 +281,8 @@ func GetMentorRequest(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("get mentor request by user id")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes

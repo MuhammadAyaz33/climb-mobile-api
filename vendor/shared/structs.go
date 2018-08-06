@@ -59,21 +59,40 @@ type UserpostData struct {
 	ID             bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	Email          string        `json:"email"`
 	Password       string        `json:"password"`
-	CompanyName    string        `json:"companyName"`
-	FullName       string        `json:"fullName"`
+	CompanyName    string        `json:"companyname"`
+	FullName       string        `json:"fullname"`
 	Address        string        `json:"address"`
 	City           string        `json:"city"`
-	ZipCode        int           `json:"zipCode"`
+	ZipCode        int           `json:"zipcode"`
 	Bio            string        `json:"bio"`
 	Age            string        `json:"age"`
-	ParentPhone    int           `json:"parentPhone"`
-	ParentEmail    string        `json:"parentEmail"`
-	AboutMe        string        `json:"aboutMe"`
+	ParentPhone    int           `json:"parentphone"`
+	ParentEmail    string        `json:"parentemail"`
+	AboutMe        string        `json:"aboutme"`
 	Status         int           `json:"status"`
 	ParentStatus   int           `json:"parentstatus"`
 	ProfilePicture string        `json:"profilepicture"`
 	UserType       string        `json:"usertype"`
 	MentorStatus   int           `json:"mentorstatus"`
+}
+type UserUpdateData struct {
+	ID             bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	Email          string        `json:"email"`
+	Password       string        `json:"password"`
+	CompanyName    string        `json:"companyname"`
+	FullName       string        `json:"fullname"`
+	Address        string        `json:"address"`
+	City           string        `json:"city"`
+	ZipCode        int           `json:"zipcode"`
+	Bio            string        `json:"bio"`
+	Age            string        `json:"age"`
+	ParentPhone    int           `json:"parentphone"`
+	ParentEmail    string        `json:"parentemail"`
+	AboutMe        string        `json:"aboutme"`
+	Status         int           `json:"status"`
+	ParentStatus   int           `json:"parentstatus"`
+	ProfilePicture string        `json:"profilepicture"`
+	UserType       string        `json:"usertype"`
 }
 type UserRes struct {
 	Data []UserpostData `json:"Data"`

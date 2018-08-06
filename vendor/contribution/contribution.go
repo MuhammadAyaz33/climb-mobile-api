@@ -130,8 +130,8 @@ func SearchContribution(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("Search contribution by email")
+	// os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes
@@ -143,14 +143,59 @@ func SearchContribution(c echo.Context) error {
 
 	//email :=c.FormValue("email")
 	email := res.UserEmail
-	fmt.Println("/n", email)
-	//password:=c.FormValue("password")
-	password := res.Title
-	fmt.Println(password)
 
-	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
 	fmt.Println(email)
-	err = db.Find(bson.M{"useremail": email}).All(&results.Data)
+	err = db.Find(bson.M{"useremail": email, "contributiontype": "contribution"}).All(&results.Data)
+
+	if err != nil {
+		//log.Fatal(err)
+	}
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	var a [0]string
+	if results.Data == nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, &a)
+	}
+	defer session.Close()
+	return c.JSON(http.StatusOK, &results)
+
+}
+func SearchEventByEmail(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	results := shared.Contributionres{}
+
+	u := new(shared.ContributionPostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.ContributionPostData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("Search event by email")
+	// os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res.Email)
+
+	//email :=c.FormValue("email")
+	email := res.UserEmail
+
+	fmt.Println(email)
+	err = db.Find(bson.M{"useremail": email, "contributiontype": "event"}).All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -185,8 +230,8 @@ func SearchContributionByCategory(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("search contribution by category")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes
@@ -230,8 +275,8 @@ func SearchContributionBySubCategory(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("search contribution by sub category")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes

@@ -39,6 +39,7 @@ func main() {
 	e.GET("/showallcontribution", contribution.ContributionGetAll)
 	e.POST("/addcontribution", contribution.Addcontribution)
 	e.POST("/searchcontribution", contribution.SearchContribution)
+	e.POST("/searcheventbyemail", contribution.SearchEventByEmail)
 	e.POST("/searchcontributionbyid", contribution.SearchContributionById)
 	e.POST("/searchcontributionbycategory", contribution.SearchContributionByCategory)
 	e.POST("/searchcontributionbysubcategory", contribution.SearchContributionBySubCategory)
@@ -117,6 +118,7 @@ func main() {
 
 	// HISTORY / NOTIFICATION
 	e.POST("/getmentorhistory", notification.GetUserMentorHistory)
+	e.POST("/changenotificationstatus", notification.ChangeNotificationStatus)
 
 	// Become a Mentor
 
