@@ -990,10 +990,10 @@ func PasswordChange(c echo.Context) (err error) {
 	//fmt.Println(res)
 	//fmt.Println(res.Data)
 	//fmt.Println(res)
-	result := shared.UsergetData{}
+	result := shared.UserUpdateData{}
 	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
-	newdata := shared.UsergetData{}
+	newdata := shared.UserUpdateData{}
 	newdata = result
 
 	if res.Password != "" {
