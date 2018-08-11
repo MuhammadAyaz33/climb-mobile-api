@@ -37,6 +37,7 @@ func main() {
 	// CONTRIBUTION FUNCITON
 	//e.GET("/", getAll)
 	e.GET("/showallcontribution", contribution.ContributionGetAll)
+	e.GET("/showallevent", contribution.GetAllEvent)
 	e.POST("/addcontribution", contribution.Addcontribution)
 	e.POST("/searchcontribution", contribution.SearchContribution)
 	e.POST("/searcheventbyemail", contribution.SearchEventByEmail)
@@ -128,6 +129,7 @@ func main() {
 	e.POST("/updatementorparentrequest", mentor.UpdateParentStatus)
 	e.POST("/updatementoradminrequest", mentor.UpdateAdminStatus)
 	e.POST("/getmentorrequeststatus", mentor.GetMentorRequest)
+	e.POST("/getmentorrequestdetail", mentor.GetMentorRequestDetail)
 	e.POST("/remainingcontributioncheck", contribution.RemainingContributionCheck)
 
 	// *****************************************************************

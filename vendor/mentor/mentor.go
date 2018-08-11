@@ -309,3 +309,45 @@ func GetMentorRequest(c echo.Context) error {
 	return c.JSON(http.StatusOK, &response)
 
 }
+func GetMentorRequestDetail(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+
+	u := new(getMentorRequest)
+	if err := c.Bind(&u); err != nil {
+	}
+	res := getMentorRequest{}
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("get mentor request by user id")
+	//os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.UserRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	result := shared.BMentorgetData{}
+	// response := mentorRequestResponse{}
+
+	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
+	if err != nil {
+		// response.Status = 0
+		defer session.Close()
+		return c.JSON(http.StatusOK, "no request found")
+		//results.Data = append(results.Data, kidrequest)
+	}
+	// response.Status = 1
+	buff, _ := json.Marshal(&result)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &result)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &result)
+
+}

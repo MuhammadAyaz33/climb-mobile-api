@@ -215,7 +215,8 @@ type Getimageurl struct {
 	Imagestatus string
 }
 type Getwebsiteurl struct {
-	Websiteurl string
+	WebsiteTitle string
+	Websiteurl   string
 }
 type Gettag struct {
 	Tag string
@@ -255,7 +256,8 @@ type Postimageurl struct {
 	Imagestatus string `json:"imagestatus"`
 }
 type Postwebsiteurl struct {
-	Websiteurl string `json:"websiteurl"`
+	WebsiteTitle string `json:"websitetitle"`
+	Websiteurl   string `json:"websiteurl"`
 }
 type Posttag struct {
 	Tag string `json:"tag"`
@@ -264,28 +266,28 @@ type Postsubcategory struct {
 	Subcategory string `json:"subcategory"`
 }
 type ContributionPostData struct {
-	ID                   bson.ObjectId   `json:"_id" bson:"_id,omitempty"`
-	UserEmail            string          `json:"useremail"`
-	UserID               string          `json:"userid"`
-	UserFullName         string          `json:"username"`
-	UserProfilePicture   string          `json:"userprofilepicture"`
-	Title                string          `json:"title"`
-	MainCategory         string          `json:"maincategory"`
-	SubCategories        string          `json:"subcategories"`
-	ContributionText     string          `json:"contributiontext"`
-	Videos               string          `json:"videos"`
-	AudioPath            string          `json:"audiopath"`
-	Images               []Postimageurl  `json:"images"`
-	Website              []Getwebsiteurl `json:"website"`
-	Coverpage            string          `json:"coverpage"`
-	Tags                 []Posttag       `json:"tags"`
-	ViewCount            int             `json:"view"`
-	ContributionStatus   string          `json:"contributionstatus"`
-	AdminStatus          int             `json:"adminstatus"`
-	Date                 string          `json:"date"`
-	ContributionType     string          `json:"contributiontype"`
-	Location             string          `json:"location"`
-	ContributionPostDate time.Time       `json:"contributionpostdate"`
+	ID                   bson.ObjectId    `json:"_id" bson:"_id,omitempty"`
+	UserEmail            string           `json:"useremail"`
+	UserID               string           `json:"userid"`
+	UserFullName         string           `json:"username"`
+	UserProfilePicture   string           `json:"userprofilepicture"`
+	Title                string           `json:"title"`
+	MainCategory         string           `json:"maincategory"`
+	SubCategories        string           `json:"subcategories"`
+	ContributionText     string           `json:"contributiontext"`
+	Videos               string           `json:"videos"`
+	AudioPath            string           `json:"audiopath"`
+	Images               []Postimageurl   `json:"images"`
+	Website              []Postwebsiteurl `json:"website"`
+	Coverpage            string           `json:"coverpage"`
+	Tags                 []Posttag        `json:"tags"`
+	ViewCount            int              `json:"view"`
+	ContributionStatus   string           `json:"contributionstatus"`
+	AdminStatus          int              `json:"adminstatus"`
+	Date                 string           `json:"date"`
+	ContributionType     string           `json:"contributiontype"`
+	Location             string           `json:"location"`
+	ContributionPostDate time.Time        `json:"contributionpostdate"`
 }
 type ContributionRes struct {
 	Data []ContributionPostData `json:"Data"`

@@ -23,13 +23,40 @@ func ContributionGetAll(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{}).All(&results.Data)
+	err = db.Find(bson.M{"contributiontype": "contribution", "contributionstatus": "Publish"}).All(&results.Data)
 
 	//  |  for one result
 	//  V
 	//result := getData{}
 	//err = db.Find(bson.M{"name": "two"}).One(&result)
-	fmt.Println(c)
+	fmt.Println("Get All Contribution")
+	if err != nil {
+
+	}
+	if results.Data == nil {
+		return c.JSON(http.StatusOK, 0)
+	}
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &results)
+
+}
+func GetAllEvent(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	results := shared.Contributionres{}
+	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).All(&results.Data)
+
+	//  |  for one result
+	//  V
+	//result := getData{}
+	//err = db.Find(bson.M{"name": "two"}).One(&result)
+	fmt.Println("Get All Event")
 	if err != nil {
 
 	}
