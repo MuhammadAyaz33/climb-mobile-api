@@ -18,7 +18,7 @@ type UsergetData struct {
 	City           string
 	ZipCode        int
 	Bio            string
-	Age            string
+	Age            int
 	ParentPhone    int
 	ParentEmail    string
 	AboutMe        string
@@ -41,7 +41,7 @@ type UserinfogetData struct {
 	City           string
 	ZipCode        int
 	Bio            string
-	Age            string
+	Age            int
 	ParentPhone    int
 	ParentEmail    string
 	AboutMe        string
@@ -50,6 +50,24 @@ type UserinfogetData struct {
 	ProfilePicture string
 	UserType       string
 	MentorStatus   int
+}
+type UserinfoUpdategetData struct {
+	ID             bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	Email          string
+	CompanyName    string
+	FullName       string
+	Address        string
+	City           string
+	ZipCode        int
+	Bio            string
+	Age            int
+	ParentPhone    int
+	ParentEmail    string
+	AboutMe        string
+	Status         int
+	ParentStatus   int
+	ProfilePicture string
+	UserType       string
 }
 type Userinfores struct {
 	Data []UserinfogetData
@@ -65,7 +83,7 @@ type UserpostData struct {
 	City           string        `json:"city"`
 	ZipCode        int           `json:"zipcode"`
 	Bio            string        `json:"bio"`
-	Age            string        `json:"age"`
+	Age            int           `json:"age"`
 	ParentPhone    int           `json:"parentphone"`
 	ParentEmail    string        `json:"parentemail"`
 	AboutMe        string        `json:"aboutme"`
@@ -85,7 +103,7 @@ type UserUpdateData struct {
 	City           string        `json:"city"`
 	ZipCode        int           `json:"zipcode"`
 	Bio            string        `json:"bio"`
-	Age            string        `json:"age"`
+	Age            int           `json:"age"`
 	ParentPhone    int           `json:"parentphone"`
 	ParentEmail    string        `json:"parentemail"`
 	AboutMe        string        `json:"aboutme"`
@@ -111,7 +129,7 @@ type BMentorgetData struct {
 	UserName             string
 	Industory            string
 	SkilLevel            string
-	Experience           string
+	Experience           int
 	WorkedFor            string
 	CompanyName          string
 	NumberOfContribution int
@@ -132,7 +150,7 @@ type BMentorpostData struct {
 	UserName             string        `json:"username"`
 	Industory            string        `json:"industry"`
 	SkilLevel            string        `json:"skillevel"`
-	Experience           string        `json:"experience"`
+	Experience           int           `json:"experience"`
 	WorkedFor            string        `json:"workedfor"`
 	CompanyName          string        `json:"companyname"`
 	NumberOfContribution int           `json:"numberofcontribution"`
@@ -212,7 +230,9 @@ type ViewRes struct {
 //CONTRIBUTION DATA ***********************************************
 
 type Getimageurl struct {
-	Imagestatus string
+	ImageTitle       string
+	ImageDescription string
+	Imagestatus      string
 }
 type Getwebsiteurl struct {
 	WebsiteTitle string
@@ -223,6 +243,9 @@ type Gettag struct {
 }
 type Getsubcategory struct {
 	Subcategory string
+}
+type GetOrder struct {
+	Order string
 }
 type ContributionData struct {
 	ID                   bson.ObjectId `json:"_id" bson:"_id,omitempty"`
@@ -247,13 +270,17 @@ type ContributionData struct {
 	ContributionType     string
 	Location             string
 	ContributionPostDate time.Time
+	Likes                int
+	FoldOrder            []GetOrder
 }
 type Contributionres struct {
 	Data []ContributionData
 }
 
 type Postimageurl struct {
-	Imagestatus string `json:"imagestatus"`
+	ImageTitle       string `json:"imagetitle"`
+	ImageDescription string `json:"imagedescription"`
+	Imagestatus      string `json:"imagestatus"`
 }
 type Postwebsiteurl struct {
 	WebsiteTitle string `json:"websitetitle"`
@@ -262,8 +289,8 @@ type Postwebsiteurl struct {
 type Posttag struct {
 	Tag string `json:"tag"`
 }
-type Postsubcategory struct {
-	Subcategory string `json:"subcategory"`
+type PostOrder struct {
+	Order string `json:"order"`
 }
 type ContributionPostData struct {
 	ID                   bson.ObjectId    `json:"_id" bson:"_id,omitempty"`
@@ -288,6 +315,8 @@ type ContributionPostData struct {
 	ContributionType     string           `json:"contributiontype"`
 	Location             string           `json:"location"`
 	ContributionPostDate time.Time        `json:"contributionpostdate"`
+	Likes                int              `json:"likes"`
+	FoldOrder            []PostOrder      `json:"foldorder"`
 }
 type ContributionRes struct {
 	Data []ContributionPostData `json:"Data"`

@@ -23,7 +23,7 @@ func ContributionGetAll(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributiontype": "contribution", "contributionstatus": "Publish"}).All(&results.Data)
+	err = db.Find(bson.M{"contributionstatus": "Publish"}).All(&results.Data)
 
 	//  |  for one result
 	//  V
@@ -89,8 +89,8 @@ func Addcontribution(c echo.Context) (err error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("Add Contribution")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes
@@ -102,9 +102,9 @@ func Addcontribution(c echo.Context) (err error) {
 	converimage := res.Coverpage
 	profilepicture := res.UserProfilePicture
 	staticpath := shared.FILEBUCKETURL
-	for i := range res.Images {
-		res.Images[i].Imagestatus = staticpath + res.Images[i].Imagestatus
-	}
+	// for i := range res.Images {
+	// 	res.Images[i].Imagestatus = staticpath + res.Images[i].Imagestatus
+	// }
 	if audiopath != "" {
 		res.AudioPath = staticpath + audiopath
 	} else {
@@ -132,6 +132,7 @@ func Addcontribution(c echo.Context) (err error) {
 	}
 	res.ViewCount = 0
 	currentdate := time.Now().UTC()
+	res.Likes = 0
 	//date := currentdate.Format("2006-01-02 3:4:5 PM")
 	res.ContributionPostDate = currentdate
 	db.Insert(res)
@@ -355,10 +356,42 @@ func Editcontribution(c echo.Context) (err error) {
 		fmt.Println("error:", error)
 	}
 	//fmt.Println(res)
-	result := shared.ContributionData{}
+	result := shared.ContributionPostData{}
 	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"_id": res.ID}).One(&result)
-	db.Update(result, res)
+	newdata := shared.ContributionPostData{}
+	newdata = result
+	staticpath := shared.FILEBUCKETURL
+
+	newdata.AdminStatus = 0
+	if len(res.Website) > 0 {
+		newdata.Website = res.Website
+	}
+	if res.Coverpage != "" {
+		newdata.Coverpage = staticpath + res.Coverpage
+	}
+	if len(res.Tags) > 0 {
+		newdata.Tags = res.Tags
+	}
+	if res.Title != "" {
+		newdata.Title = res.Title
+	}
+	if res.MainCategory != "" {
+		newdata.MainCategory = res.MainCategory
+	}
+	if res.SubCategories != "" {
+		newdata.SubCategories = res.SubCategories
+	}
+	if res.Videos != "" {
+		newdata.Videos = res.Videos
+	}
+	if len(res.Images) > 0 {
+		newdata.Images = res.Images
+	}
+	if res.ContributionStatus != "" {
+		newdata.ContributionStatus = res.ContributionStatus
+	}
+	db.Update(result, newdata)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
 }
@@ -463,7 +496,7 @@ func UpdateAdminStatus(c echo.Context) (err error) {
 	notification.AddMentorCreatContributionHistory(result.UserID)
 	notification.AddChildCreatContributionHistory(result.UserID)
 	contributionid := fmt.Sprintf("%x", string(result.ID))
-	notification.AddAdminAproveContributionHistory(result.UserID, contributionid, result.Title)
+	notification.AddAdminAproveContributionHistory(result.UserID, contributionid, result.Title, result.ContributionType)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
 }
@@ -522,12 +555,12 @@ func AddView(c echo.Context) (err error) {
 			db1.Insert(res1)
 			defer session.Close()
 
-			return c.JSON(http.StatusOK, "view added")
+			return c.JSON(http.StatusOK, 1)
 		}
 
 	}
 
-	return c.JSON(http.StatusOK, "no view add")
+	return c.JSON(http.StatusOK, 0)
 }
 func RemoveOneContribution(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -668,8 +701,24 @@ func SearchEvent(c echo.Context) (err error) {
 	}
 	//fmt.Println(res)
 	result := shared.Contributionres{}
+	//locationresult := shared.Contributionres{}
 	//fmt.Println("%T \n", result)
-	err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": bson.RegEx{Pattern: res.Location, Options: "i"}, "contributiontype": "event"}).All(&result.Data)
+	//alldata := shared.Contributionres{}
+	query := bson.M{}
+	if res.Date != "" {
+		query["date"] = res.Date
+	}
+	if res.MainCategory != "" {
+		query["maincategory"] = res.MainCategory
+	}
+	if res.Location != "" {
+		query["location"] = bson.RegEx{Pattern: res.Location, Options: "i"}
+	}
+	query["contributiontype"] = "event"
+	query["adminstatus"] = 1
+
+	err = db.Find(query).All(&result.Data)
+	//err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": bson.RegEx{Pattern: res.Location, Options: "i"}, "contributiontype": "event"}).All(&result.Data)
 	//db.Update(result, res)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &result)
@@ -726,4 +775,42 @@ func SearchSubContribution(c echo.Context) (err error) {
 
 	defer session.Close()
 	return c.JSON(http.StatusOK, &data)
+}
+
+func RejectContribution(c echo.Context) (err error) {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+
+	u := new(shared.ContributionPostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.ContributionPostData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res)
+	result := shared.ContributionData{}
+	//fmt.Println("%T \n", result)
+	err = db.Find(bson.M{"_id": res.ID}).One(&result)
+	newdata := shared.ContributionData{}
+	newdata = result
+	newdata.ContributionStatus = "Reject"
+	newdata.AdminStatus = 0
+	db.Update(result, newdata)
+	contributionid := fmt.Sprintf("%x", string(result.ID))
+	notification.AddAdminRejectContributionHistory(result.UserID, contributionid, result.Title, result.ContributionType)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &r)
 }

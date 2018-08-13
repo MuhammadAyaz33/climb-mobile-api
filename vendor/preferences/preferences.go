@@ -38,12 +38,43 @@ type Res struct {
 	Data []postData `json:"Data"`
 }
 
+type getCategory struct {
+	Category string
+}
+type Category struct {
+	Data []getCategory `json:"Data"`
+}
+
 //GET *********************************************************************************
 func GetAllPreferences(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.PREFERENCESCOLLECTION)
 	results := res{}
+	err = db.Find(bson.M{}).All(&results.Data)
+
+	//  |  for one result
+	//  V
+	//result := getData{}
+	//err = db.Find(bson.M{"name": "two"}).One(&result)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &results)
+
+}
+func GetAllCategory(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.PREFERENCESCOLLECTION)
+	results := Category{}
 	err = db.Find(bson.M{}).All(&results.Data)
 
 	//  |  for one result
@@ -111,8 +142,8 @@ func AddPreferences(c echo.Context) (err error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("Add Preferences")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r Res
@@ -126,7 +157,48 @@ func AddPreferences(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, &r)
 
 }
+func AddCategory(c echo.Context) (err error) {
 
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.PREFERENCESCOLLECTION)
+	//name:=c.FormValue("Cms")
+	//fmt.Println(name)
+	//name =c.FormValue("name")
+	//fmt.Println(name)
+	//u:=new (postData)
+	u := new(postData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := postData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("Add Category")
+	//os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r Res
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	result := getData{}
+	err1 := db.Find(bson.M{"category": res.Category}).One(&result)
+	if err1 == nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, "category already added")
+	} else {
+		db.Insert(res)
+	}
+	//fmt.Println(res)
+
+	defer session.Close()
+	return c.JSON(http.StatusOK, &r)
+
+}
 func PutPreferences(c echo.Context) (err error) {
 
 	session, err := shared.ConnectMongo(shared.DBURL)

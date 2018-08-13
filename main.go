@@ -51,15 +51,19 @@ func main() {
 	e.POST("/updateadminstatus", contribution.UpdateAdminStatus)
 	e.POST("/searchevent", contribution.SearchEvent)
 	e.POST("/searchingcontribution", contribution.SearchSubContribution)
+	e.POST("/rejectcontribution", contribution.RejectContribution)
 
 	// PREFERENCES FUNCTION
 
 	//e.GET("/", preferences.GetAllPreferences)
 	e.GET("/getallpreferences", preferences.GetAllPreferences)
+	e.GET("/getallcategory", preferences.GetAllCategory)
 	e.GET("/getallpreferencesbycategory", preferences.GetPrefencesbyCategory)
 	e.POST("/addpreference", preferences.AddPreferences)
+	e.POST("/addcategory", preferences.AddCategory)
 	e.PUT("/removesubcategory", preferences.RemoveSubcategory)
 	e.PUT("/addsubcategory", preferences.Addsubcategory)
+
 	e.PUT("/updateall", preferences.PutPreferences)
 
 	// MENTOR / FOLLOWER FUNCTION
@@ -131,6 +135,8 @@ func main() {
 	e.POST("/getmentorrequeststatus", mentor.GetMentorRequest)
 	e.POST("/getmentorrequestdetail", mentor.GetMentorRequestDetail)
 	e.POST("/remainingcontributioncheck", contribution.RemainingContributionCheck)
+	e.POST("/adminmentorrequestreject", mentor.UpdateAdminRejectStatus)
+	e.POST("/parentmentorrequestreject", mentor.UpdateRejectParentMentorStatus)
 
 	// *****************************************************************
 	e.Logger.Fatal(e.Start(":8080"))

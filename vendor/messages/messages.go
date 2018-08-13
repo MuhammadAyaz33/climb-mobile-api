@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"shared"
-	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
@@ -301,20 +300,15 @@ func AddUserMessages(c echo.Context) (err error) {
 		fmt.Println("error:", error)
 	}
 	//fmt.Println(res)
-	senderuserinfo := shared.UsergetData{}
-	receiveruserinfo := shared.UsergetData{}
+	senderuserinfo := shared.UserinfoUpdategetData{}
+	receiveruserinfo := shared.UserinfoUpdategetData{}
 
 	senderuserinfo = UserInfo(res.SenderUserID)
 	receiveruserinfo = UserInfo(res.ReceiverUserID)
 
 	//fmt.Println("userinfo")
 	//fmt.Println(receiveruserinfo)
-	age, err := strconv.Atoi(senderuserinfo.Age)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(age)
-
-	}
+	age := senderuserinfo.Age
 
 	result := getData{}
 	err = db.Find(bson.M{"user1id": res.SenderUserID, "user2id": res.ReceiverUserID}).One(&result)
@@ -436,11 +430,11 @@ func AddChatMessages(chatid string, msg string, senderid bson.ObjectId, age int)
 
 }
 
-func UserInfo(userid bson.ObjectId) shared.UsergetData {
+func UserInfo(userid bson.ObjectId) shared.UserinfoUpdategetData {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	results := shared.UsergetData{}
+	results := shared.UserinfoUpdategetData{}
 
 	if err != nil {
 	}

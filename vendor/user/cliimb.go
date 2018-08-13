@@ -8,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"shared"
-	"strconv"
 	"strings"
 	"time"
 
@@ -83,10 +82,10 @@ func Adduser(c echo.Context) (err error) {
 	//name =c.FormValue("name")
 	//fmt.Println(name)
 	//u:=new (postData)
-	u := new(shared.UserpostData)
+	u := new(shared.UserUpdateData)
 	if err = c.Bind(&u); err != nil {
 	}
-	res := shared.UserpostData{}
+	res := shared.UserUpdateData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
 	b, err := json.Marshal(res)
@@ -116,11 +115,12 @@ func Adduser(c echo.Context) (err error) {
 		res.Status = 0
 		//parent := res.ParentStatus
 		res.ParentStatus = 0
+		res.Age = 0
 		res.ParentPhone = 0
 		hash := hashAndSalt([]byte(res.Password))
 		res.Password = hash
 		res.UserType = "user"
-		res.MentorStatus = 0
+		//res.MentorStatus = 0
 		db.Insert(res)
 
 	} else {
@@ -561,10 +561,10 @@ func UpdateProfile(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 
-	u := new(shared.UserpostData)
+	u := new(shared.UserUpdateData)
 	if err = c.Bind(&u); err != nil {
 	}
-	res := shared.UserpostData{}
+	res := shared.UserUpdateData{}
 	res = *u
 	b, err := json.Marshal(res)
 	if err != nil {
@@ -583,6 +583,10 @@ func UpdateProfile(c echo.Context) (err error) {
 
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
 
+	if res.ParentEmail == result.ParentEmail {
+		defer session.Close()
+		return c.JSON(http.StatusOK, "you already kid of this parent email")
+	}
 	newdata := shared.UserUpdateData{}
 	newdata = result
 	if res.FullName != "" {
@@ -605,22 +609,14 @@ func UpdateProfile(c echo.Context) (err error) {
 	if res.Bio != "" {
 		newdata.Bio = res.Bio
 	}
-	if res.Age != "" {
-		parent := res.Age
-		i, err := strconv.Atoi(parent)
-		if err != nil {
-			// handle error
-			fmt.Println(err)
-			//os.Exit(2)
-		}
 
-		if i <= 18 {
-			newdata.ParentStatus = 0
-		} else {
-			newdata.ParentStatus = 1
-		}
-		newdata.Age = res.Age
+	if res.Age < 18 {
+		newdata.ParentStatus = 0
+	} else {
+		newdata.ParentStatus = 1
 	}
+	newdata.Age = res.Age
+
 	if res.ParentPhone != 0 {
 		newdata.ParentPhone = res.ParentPhone
 
@@ -647,6 +643,10 @@ func UpdateProfile(c echo.Context) (err error) {
 		ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
 		//fmt.Println(maintoken)
 	}
+	if res.ParentPhone <= 0 {
+		newdata.ParentPhone = res.ParentPhone
+	}
+	//newdata.ParentPhone = res.ParentPhone
 	// fmt.Println("result ---------", newdata)
 	// fmt.Println("result ---------", result)
 	//err = db.Find(bson.M{"email": res.Email}).One(&result)

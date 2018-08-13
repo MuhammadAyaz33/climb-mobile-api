@@ -59,22 +59,36 @@ type AproveMentorMsgGet struct {
 type AdminAproveContributionGet struct {
 	ContributionID    string
 	ContributionTitle string
+	ContributionType  string
 }
-
+type AdminRejectContributionGet struct {
+	ContributionID    string
+	ContributionTitle string
+	ContributionType  string
+}
+type ChildSubmitMentorFormGet struct {
+	ChildID             string
+	ChildUserName       string
+	ChildProfilePicture string
+}
 type MentoryHistorygetData struct {
-	ID                       bson.ObjectId `json:"_id" bson:"_id,omitempty"`
-	UserID                   string
-	AdminMentorRequest       bool
-	ParentMentorRequest      bool
-	NewNotification          bool
-	Followers                []FollowerGet
-	ContributionLikes        []LikesGet
-	ContributionComments     []CommentsGet
-	MentorCreateContribution []MentorCreateContributionGet
-	ChildCreateContribution  []ChildCreateContributionGet
-	MentorAprovel            []AproveMentorGet
-	MentorMsgAprovel         []AproveMentorMsgGet
-	AdminAproveContribution  []AdminAproveContributionGet
+	ID                        bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	UserID                    string
+	AdminMentorRequest        bool
+	AdminMentorRequestReject  bool
+	ParentMentorRequest       bool
+	ParentMentorRequestReject bool
+	NewNotification           bool
+	Followers                 []FollowerGet
+	ContributionLikes         []LikesGet
+	ContributionComments      []CommentsGet
+	MentorCreateContribution  []MentorCreateContributionGet
+	ChildCreateContribution   []ChildCreateContributionGet
+	ChildSubmitMentorForm     []ChildSubmitMentorFormGet
+	MentorAprovel             []AproveMentorGet
+	MentorMsgAprovel          []AproveMentorMsgGet
+	AdminAproveContribution   []AdminAproveContributionGet
+	AdminRejectContribution   []AdminRejectContributionGet
 }
 type res struct {
 	Data []MentoryHistorygetData
@@ -128,21 +142,36 @@ type AproveMentorMsgPost struct {
 type AdminAproveContributionPost struct {
 	ContributionID    string `json:"contributionid"`
 	ContributionTitle string `json:"contributiontitle"`
+	ContributionType  string `json:"contributiontype"`
+}
+type AdminRejectContributionPost struct {
+	ContributionID    string `json:"contributionid"`
+	ContributionTitle string `json:"contributiontitle"`
+	ContributionType  string `json:"contributiontype"`
+}
+type ChildSubmitMentorFormPost struct {
+	ChildID             string `json:"childid"`
+	ChildUserName       string `json:"childusername"`
+	ChildProfilePicture string `json:"childprofilepicture"`
 }
 type MentoryHistorypostData struct {
-	ID                       bson.ObjectId                  `json:"_id" bson:"_id,omitempty"`
-	UserID                   string                         `json:"userid"`
-	AdminMentorRequest       bool                           `json:"adminmentorrequest"`
-	ParentMentorRequest      bool                           `json:"parentmentorrequest"`
-	NewNotification          bool                           `json:"newnotification"`
-	Followers                []FollowerPost                 `json:"followers"`
-	ContributionLikes        []LikesPost                    `json:"contributionlikes"`
-	ContributionComments     []CommentsPost                 `json:"contributioncomments"`
-	MentorCreateContribution []MentorCreateContributionPost `json:"mentorcreatecontribution"`
-	ChildCreateContribution  []ChildCreateContributionPost  `json:"childcreatecontribution"`
-	MentorAprovel            []AproveMentorPost             `json:"mentoraprovel"`
-	MentorMsgAprovel         []AproveMentorMsgPost          `json:"mentormsgaprovel"`
-	AdminAproveContribution  []AdminAproveContributionPost  `json:"adminaprovecontribution"`
+	ID                        bson.ObjectId                  `json:"_id" bson:"_id,omitempty"`
+	UserID                    string                         `json:"userid"`
+	AdminMentorRequest        bool                           `json:"adminmentorrequestaprove"`
+	AdminMentorRequestReject  bool                           `json:"adminmentorrequestreject"`
+	ParentMentorRequest       bool                           `json:"parentmentorrequestaprove"`
+	ParentMentorRequestReject bool                           `json:"parentmentorrequestreject"`
+	NewNotification           bool                           `json:"newnotification"`
+	Followers                 []FollowerPost                 `json:"followers"`
+	ContributionLikes         []LikesPost                    `json:"contributionlikes"`
+	ContributionComments      []CommentsPost                 `json:"contributioncomments"`
+	MentorCreateContribution  []MentorCreateContributionPost `json:"mentorcreatecontribution"`
+	ChildCreateContribution   []ChildCreateContributionPost  `json:"childcreatecontribution"`
+	ChildSubmitMentorForm     []ChildSubmitMentorFormPost    `json:"childsubmitmentorform"`
+	MentorAprovel             []AproveMentorPost             `json:"mentoraprovel"`
+	MentorMsgAprovel          []AproveMentorMsgPost          `json:"mentormsgaprovel"`
+	AdminAproveContribution   []AdminAproveContributionPost  `json:"adminaprovecontribution"`
+	AdminRejectContribution   []AdminRejectContributionPost  `json:"adminrejectcontribution"`
 }
 type Res struct {
 	Data []MentoryHistorypostData `json:"Data"`
@@ -161,7 +190,7 @@ func AddMentorFollwerHistory(userid string, followerid string) {
 	}
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": userid}).One(&result)
-	followeruserinfo := shared.UsergetData{}
+	followeruserinfo := shared.UserinfoUpdategetData{}
 	bsonObjectID := bson.ObjectIdHex(followerid)
 	followeruserinfo = UserInfo(bsonObjectID)
 
@@ -200,7 +229,7 @@ func AddMentorFollwerHistory(userid string, followerid string) {
 		}
 
 	}
-
+	defer session.Close()
 }
 func (box *MentoryHistorypostData) AddItemPostFollow(item FollowerPost) []FollowerPost {
 	box.Followers = append(box.Followers, item)
@@ -227,7 +256,7 @@ func AddMentorLikeHistory(contributionid string, likeuserid string) {
 	err = db.Find(bson.M{"userid": contributiondetail.UserID}).One(&result)
 
 	UserIDconv := bson.ObjectIdHex(likeuserid)
-	userinfo := shared.UsergetData{}
+	userinfo := shared.UserinfoUpdategetData{}
 	userinfo = UserInfo(UserIDconv)
 
 	if err != nil {
@@ -251,7 +280,7 @@ func AddMentorLikeHistory(contributionid string, likeuserid string) {
 		newdata.NewNotification = true
 		db.Update(result, newdata)
 	}
-
+	defer session.Close()
 }
 func (box *MentoryHistorypostData) AddItemPostLike(item LikesPost) []LikesPost {
 	box.ContributionLikes = append(box.ContributionLikes, item)
@@ -277,7 +306,7 @@ func AddMentorcommentHistory(contributionid string, commentuserid string) {
 	err = db.Find(bson.M{"userid": contributiondetail.UserID}).One(&result)
 
 	UserIDconv := bson.ObjectIdHex(commentuserid)
-	userinfo := shared.UsergetData{}
+	userinfo := shared.UserinfoUpdategetData{}
 	userinfo = UserInfo(UserIDconv)
 
 	if err != nil {
@@ -302,7 +331,7 @@ func AddMentorcommentHistory(contributionid string, commentuserid string) {
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
 	}
-
+	defer session.Close()
 }
 
 func (box *MentoryHistorypostData) AddItemPostComment(item CommentsPost) []CommentsPost {
@@ -314,11 +343,11 @@ func (box *MentoryHistorygetData) AddItemGetComment(item CommentsGet) []Comments
 	return box.ContributionComments
 }
 
-func UserInfo(userid bson.ObjectId) shared.UsergetData {
+func UserInfo(userid bson.ObjectId) shared.UserinfoUpdategetData {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	results := shared.UsergetData{}
+	results := shared.UserinfoUpdategetData{}
 
 	if err != nil {
 	}
@@ -336,11 +365,11 @@ func UserInfo(userid bson.ObjectId) shared.UsergetData {
 	defer session.Close()
 	return results
 }
-func UserInfoByEmail(useremail string) shared.UsergetData {
+func UserInfoByEmail(useremail string) shared.UserinfoUpdategetData {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	results := shared.UsergetData{}
+	results := shared.UserinfoUpdategetData{}
 
 	if err != nil {
 	}
@@ -457,7 +486,7 @@ func AddMentorCreatContributionHistory(mentorid string) {
 
 	} else {
 		mentoridconv := bson.ObjectIdHex(mentorid)
-		mentoruserinfo := shared.UsergetData{}
+		mentoruserinfo := shared.UserinfoUpdategetData{}
 		mentoruserinfo = UserInfo(mentoridconv)
 		hexmentorid := fmt.Sprintf("%x", string(mentoruserinfo.ID))
 
@@ -491,7 +520,7 @@ func AddMentorCreatContributionHistory(mentorid string) {
 
 		}
 	}
-
+	defer session.Close()
 }
 
 func (box *MentoryHistorypostData) AddItemPostCreateContribution(item MentorCreateContributionPost) []MentorCreateContributionPost {
@@ -536,14 +565,14 @@ func AddChildCreatContributionHistory(mentorid string) {
 	}
 
 	kididconv := bson.ObjectIdHex(mentorid)
-	kiduserinfo := shared.UsergetData{}
+	kiduserinfo := shared.UserinfoUpdategetData{}
 	kiduserinfo = UserInfo(kididconv)
 	kidemail := kiduserinfo.Email
 
 	childinfo := user.ParentgetData{}
 	childinfo = ParentInfo(kidemail)
 	if childinfo.ParentEmail != "" {
-		parentinfo := shared.UsergetData{}
+		parentinfo := shared.UserinfoUpdategetData{}
 		parentinfo = UserInfoByEmail(childinfo.ParentEmail)
 
 		parentid := fmt.Sprintf("%x", string(parentinfo.ID))
@@ -580,7 +609,7 @@ func AddChildCreatContributionHistory(mentorid string) {
 			db.Update(result, newdata)
 		}
 	}
-
+	defer session.Close()
 }
 
 func (box *MentoryHistorypostData) AddItemPostCreateContributionKid(item ChildCreateContributionPost) []ChildCreateContributionPost {
@@ -604,7 +633,7 @@ func AddMentorAproveHistory(Userid string, followerid string) {
 	// userinfo = UserInfo(UserIDconv)
 
 	followerIDconv := bson.ObjectIdHex(followerid)
-	followerinfo := shared.UsergetData{}
+	followerinfo := shared.UserinfoUpdategetData{}
 	followerinfo = UserInfo(followerIDconv)
 
 	result := MentoryHistorygetData{}
@@ -630,7 +659,7 @@ func AddMentorAproveHistory(Userid string, followerid string) {
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
 	}
-
+	defer session.Close()
 }
 func (box *MentoryHistorypostData) AddItemPostAproveMentor(item AproveMentorPost) []AproveMentorPost {
 	box.MentorAprovel = append(box.MentorAprovel, item)
@@ -654,7 +683,7 @@ func AddMentorMsgAproveHistory(Userid string, followerid string) {
 	// userinfo = UserInfo(UserIDconv)
 
 	followerIDconv := bson.ObjectIdHex(followerid)
-	followerinfo := shared.UsergetData{}
+	followerinfo := shared.UserinfoUpdategetData{}
 	followerinfo = UserInfo(followerIDconv)
 
 	result := MentoryHistorygetData{}
@@ -680,7 +709,7 @@ func AddMentorMsgAproveHistory(Userid string, followerid string) {
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
 	}
-
+	defer session.Close()
 }
 func (box *MentoryHistorypostData) AddItemPostAproveMentorMsg(item AproveMentorMsgPost) []AproveMentorMsgPost {
 	box.MentorMsgAprovel = append(box.MentorMsgAprovel, item)
@@ -691,7 +720,7 @@ func (box *MentoryHistorygetData) AddItemGetAproveMentorMsg(item AproveMentorMsg
 	return box.MentorMsgAprovel
 }
 
-func AddAdminAproveContributionHistory(Userid string, contributionid string, contributiontitle string) {
+func AddAdminAproveContributionHistory(Userid string, contributionid string, contributiontitle string, contributiontype string) {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
@@ -706,7 +735,7 @@ func AddAdminAproveContributionHistory(Userid string, contributionid string, con
 		adminaprove := MentoryHistorypostData{}
 		adminaprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		item := AdminAproveContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle}
+		item := AdminAproveContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
 		adminaprove.AddItemPostAdminAprove(item)
 		adminaprove.NewNotification = true
 		db.Insert(adminaprove)
@@ -716,13 +745,46 @@ func AddAdminAproveContributionHistory(Userid string, contributionid string, con
 		newdata := MentoryHistorygetData{}
 		newdata = result
 
-		item := AdminAproveContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle}
+		item := AdminAproveContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
 		newdata.AddItemGetAdminAprove(item)
 		newdata.NewNotification = true
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
 	}
+	defer session.Close()
+}
+func AddAdminRejectContributionHistory(Userid string, contributionid string, contributiontitle string, contributiontype string) {
 
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		adminaprove := MentoryHistorypostData{}
+		adminaprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		item := AdminRejectContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
+		adminaprove.AddItemPostAdminReject(item)
+		adminaprove.NewNotification = true
+		db.Insert(adminaprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+
+		item := AdminRejectContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
+		newdata.AddItemGetAdminReject(item)
+		newdata.NewNotification = true
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+	defer session.Close()
 }
 func (box *MentoryHistorypostData) AddItemPostAdminAprove(item AdminAproveContributionPost) []AdminAproveContributionPost {
 	box.AdminAproveContribution = append(box.AdminAproveContribution, item)
@@ -731,6 +793,15 @@ func (box *MentoryHistorypostData) AddItemPostAdminAprove(item AdminAproveContri
 func (box *MentoryHistorygetData) AddItemGetAdminAprove(item AdminAproveContributionGet) []AdminAproveContributionGet {
 	box.AdminAproveContribution = append(box.AdminAproveContribution, item)
 	return box.AdminAproveContribution
+}
+
+func (box *MentoryHistorypostData) AddItemPostAdminReject(item AdminRejectContributionPost) []AdminRejectContributionPost {
+	box.AdminRejectContribution = append(box.AdminRejectContribution, item)
+	return box.AdminRejectContribution
+}
+func (box *MentoryHistorygetData) AddItemGetAdminReject(item AdminRejectContributionGet) []AdminRejectContributionGet {
+	box.AdminRejectContribution = append(box.AdminRejectContribution, item)
+	return box.AdminRejectContribution
 }
 
 func AddAdminMentorRequestApprove(Userid string) {
@@ -761,7 +832,37 @@ func AddAdminMentorRequestApprove(Userid string) {
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
 	}
+	defer session.Close()
+}
+func AddAdminMentorRequestReject(Userid string) {
 
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		adminaprove := MentoryHistorypostData{}
+		adminaprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		adminaprove.AdminMentorRequestReject = true
+		adminaprove.NewNotification = true
+		db.Insert(adminaprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+		newdata.AdminMentorRequestReject = true
+		newdata.NewNotification = true
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+	defer session.Close()
 }
 func AddParentMentorRequestApprove(Userid string) {
 
@@ -791,7 +892,37 @@ func AddParentMentorRequestApprove(Userid string) {
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
 	}
+	defer session.Close()
+}
+func AddParentMentorRequestReject(Userid string) {
 
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": Userid}).One(&result)
+
+	if err != nil {
+		adminaprove := MentoryHistorypostData{}
+		adminaprove.UserID = Userid
+		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+		adminaprove.ParentMentorRequestReject = true
+		adminaprove.NewNotification = true
+		db.Insert(adminaprove)
+		//fmt.Println(newfollower)
+	} else {
+		//fmt.Println("user exit update history")
+		newdata := MentoryHistorygetData{}
+		newdata = result
+		newdata.ParentMentorRequestReject = true
+		newdata.NewNotification = true
+		db.Update(result, newdata)
+		//AddMentorCreatContributionHistory(contributiondetail.UserID)
+	}
+	defer session.Close()
 }
 func ChangeNotificationStatus(c echo.Context) error {
 
@@ -834,4 +965,56 @@ func ChangeNotificationStatus(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, 1)
 
+}
+
+func AddChildMentorRequestFormHistory(Userid string) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	UserIDconv := bson.ObjectIdHex(Userid)
+	userinfo := shared.UserinfoUpdategetData{}
+	userinfo = UserInfo(UserIDconv)
+	if userinfo.ParentEmail != "" {
+		result := MentoryHistorygetData{}
+		parentinfo := UserInfoByEmail(userinfo.ParentEmail)
+
+		parentid := fmt.Sprintf("%x", string(parentinfo.ID))
+
+		err = db.Find(bson.M{"userid": parentid}).One(&result)
+
+		if err != nil {
+			mentoraprove := MentoryHistorypostData{}
+			mentoraprove.UserID = parentid
+			//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
+			item := ChildSubmitMentorFormPost{ChildID: Userid, ChildUserName: userinfo.FullName, ChildProfilePicture: userinfo.ProfilePicture}
+			mentoraprove.AddMentorFormRequestPost(item)
+			mentoraprove.NewNotification = true
+			db.Insert(mentoraprove)
+			//fmt.Println(newfollower)
+		} else {
+			//fmt.Println("user exit update history")
+			newdata := MentoryHistorygetData{}
+			newdata = result
+
+			item := ChildSubmitMentorFormGet{ChildID: Userid, ChildUserName: userinfo.FullName, ChildProfilePicture: userinfo.ProfilePicture}
+			newdata.AddMentorFormRequestGet(item)
+			newdata.NewNotification = true
+			db.Update(result, newdata)
+			//AddMentorCreatContributionHistory(contributiondetail.UserID)
+		}
+	}
+
+	defer session.Close()
+}
+func (box *MentoryHistorypostData) AddMentorFormRequestPost(item ChildSubmitMentorFormPost) []ChildSubmitMentorFormPost {
+	box.ChildSubmitMentorForm = append(box.ChildSubmitMentorForm, item)
+	return box.ChildSubmitMentorForm
+}
+func (box *MentoryHistorygetData) AddMentorFormRequestGet(item ChildSubmitMentorFormGet) []ChildSubmitMentorFormGet {
+	box.ChildSubmitMentorForm = append(box.ChildSubmitMentorForm, item)
+	return box.ChildSubmitMentorForm
 }

@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"notification"
-	"os"
 	"shared"
 
 	"github.com/labstack/echo"
@@ -67,8 +66,8 @@ func BecomeMentorRequest(c echo.Context) (err error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("Become a Mentor Request")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes
@@ -90,6 +89,7 @@ func BecomeMentorRequest(c echo.Context) (err error) {
 		res.AdminStatus = 0
 
 		db.Insert(res)
+		notification.AddChildMentorRequestFormHistory(res.UserID)
 
 	} else {
 
@@ -228,6 +228,47 @@ func UpdateParentStatus(c echo.Context) error {
 	return c.JSON(http.StatusOK, 1)
 
 }
+func UpdateRejectParentMentorStatus(c echo.Context) error {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+
+	u := new(shared.BMentorpostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.BMentorpostData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("update parent reject status of mentor request")
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	result := shared.BMentorpostData{}
+
+	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
+	if err != nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, 0)
+		//results.Data = append(results.Data, kidrequest)
+	}
+	// res.ContributionStatus = 1
+	newdata := shared.BMentorpostData{}
+	newdata = result
+	newdata.ParentStatus = 2
+	db.Update(result, newdata)
+	notification.AddParentMentorRequestReject(result.UserID)
+
+	defer session.Close()
+	return c.JSON(http.StatusOK, 1)
+
+}
+
 func UpdateAdminStatus(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
@@ -263,6 +304,45 @@ func UpdateAdminStatus(c echo.Context) error {
 	newdata.AdminStatus = 1
 	db.Update(result, newdata)
 	notification.AddAdminMentorRequestApprove(result.UserID)
+
+	defer session.Close()
+	return c.JSON(http.StatusOK, 1)
+}
+func UpdateAdminRejectStatus(c echo.Context) error {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+
+	u := new(shared.BMentorpostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.BMentorpostData{}
+	//fmt.Println("this is C:", postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("update admin reject status of mentor request")
+	var jsonBlob = []byte(b)
+	var r shared.ContributionRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	result := shared.BMentorpostData{}
+
+	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
+	if err != nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, 0)
+		//results.Data = append(results.Data, kidrequest)
+	}
+	// res.ContributionStatus = 1
+	newdata := shared.BMentorpostData{}
+	newdata = result
+	newdata.AdminStatus = 2
+	db.Update(result, newdata)
+	notification.AddAdminMentorRequestReject(result.UserID)
 
 	defer session.Close()
 	return c.JSON(http.StatusOK, 1)

@@ -233,8 +233,10 @@ func UnLike(c echo.Context) (err error) {
 	}
 	db.Update(result1, result)
 	//fmt.Println(check)
+	UpdateUnLikeCount(res.ContributionID)
+	likecount := GetLikeCount(res.ContributionID)
 	defer session.Close()
-	return c.JSON(http.StatusOK, "successfull deleted")
+	return c.JSON(http.StatusOK, likecount)
 
 }
 func (self *getData) removelike(item postData) {
@@ -315,7 +317,8 @@ func AddLikes(c echo.Context) (err error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	os.Stdout.Write(b)
+	//os.Stdout.Write(b)
+	fmt.Println("Add likes")
 
 	var jsonBlob = []byte(b)
 	var r Res
@@ -340,16 +343,20 @@ func AddLikes(c echo.Context) (err error) {
 		db.Update(result, newdata)
 
 		notification.AddMentorLikeHistory(res.ContributionID, res.Likes[0].LikeUserID)
-
+		UpdateLikeCount(res.ContributionID)
+		likecount := GetLikeCount(res.ContributionID)
 		defer session.Close()
-		return c.JSON(http.StatusOK, "like update")
+		return c.JSON(http.StatusOK, likecount)
 	} else {
 		//fmt.Println("new data add")
 		db.Insert(res)
 		notification.AddMentorLikeHistory(res.ContributionID, res.Likes[0].LikeUserID)
+		UpdateLikeCount(res.ContributionID)
+		likecount := GetLikeCount(res.ContributionID)
 		defer session.Close()
-		return c.JSON(http.StatusOK, "like added")
+		return c.JSON(http.StatusOK, likecount)
 	}
+
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
 }
@@ -360,4 +367,55 @@ func (box *getData) AddItem(item getProduct) []getProduct {
 func (box *getData) AddItemlikes(item likesgetproduct) []likesgetproduct {
 	box.Likes = append(box.Likes, item)
 	return box.Likes
+}
+
+func UpdateLikeCount(contributionid string) {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	result := shared.ContributionData{}
+	contributionObjectID := bson.ObjectIdHex(contributionid)
+	err = db.Find(bson.M{"_id": contributionObjectID}).One(&result)
+	newdata := shared.ContributionData{}
+	newdata = result
+	likes := newdata.Likes
+	likes++
+	newdata.Likes = likes
+	if err != nil {
+		fmt.Println("some thing goes wrong")
+	}
+
+	db.Update(result, newdata)
+}
+func UpdateUnLikeCount(contributionid string) {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	result := shared.ContributionData{}
+	contributionObjectID := bson.ObjectIdHex(contributionid)
+	err = db.Find(bson.M{"_id": contributionObjectID}).One(&result)
+	newdata := shared.ContributionData{}
+	newdata = result
+	likes := newdata.Likes
+	likes--
+	newdata.Likes = likes
+	if likes < 0 {
+		newdata.Likes = 0
+	}
+	if err != nil {
+		fmt.Println("some thing goes wrong")
+	}
+
+	db.Update(result, newdata)
+}
+func GetLikeCount(contributionid string) int {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	result := shared.ContributionData{}
+	contributionObjectID := bson.ObjectIdHex(contributionid)
+	err = db.Find(bson.M{"_id": contributionObjectID}).One(&result)
+
+	if err != nil {
+		fmt.Println("some thing goes wrong")
+	}
+
+	return result.Likes
 }
