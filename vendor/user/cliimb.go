@@ -392,9 +392,9 @@ func UpdateStatus(status int, email string, check string) {
 	if err != nil {
 	}
 
-	result := shared.UsergetData{}
+	result := shared.UserinfoUpdategetData{}
 	err = db.Find(bson.M{"email": email}).One(&result)
-	newresult := shared.UsergetData{}
+	newresult := shared.UserinfoUpdategetData{}
 	newresult = result
 	newresult.Status = status
 	db.Update(result, newresult)
