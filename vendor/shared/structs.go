@@ -54,6 +54,7 @@ type UserinfogetData struct {
 type UserinfoUpdategetData struct {
 	ID             bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	Email          string
+	Password       string
 	CompanyName    string
 	FullName       string
 	Address        string
