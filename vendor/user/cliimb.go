@@ -438,8 +438,8 @@ func Login(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("login ")
+	//	os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.UserRes

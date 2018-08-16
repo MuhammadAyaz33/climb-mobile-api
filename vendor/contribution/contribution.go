@@ -408,9 +408,15 @@ func Editcontribution(c echo.Context) (err error) {
 	if len(res.Website) > 0 {
 		newdata.Website = res.Website
 	}
-	//fmt.Println("conver page ******************* /n", res.Coverpage)
+
 	if res.Coverpage != "" {
-		newdata.Coverpage = staticpath + res.Coverpage
+		a := strings.Contains(res.Coverpage, staticpath)
+		if a == false {
+			newdata.Coverpage = staticpath + res.Coverpage
+		} else {
+			newdata.Coverpage = result.Coverpage
+		}
+
 	}
 	if len(res.Tags) > 0 {
 		newdata.Tags = res.Tags
