@@ -110,10 +110,10 @@ func Addcontribution(c echo.Context) (err error) {
 	} else {
 		res.AudioPath = ""
 	}
+
 	if res.Coverpage != "" {
 		res.Coverpage = staticpath + converimage
-	} else {
-		res.Coverpage = ""
+		//fmt.Println("cover page  ******", res.Coverpage)
 	}
 
 	if profilepicture != "" {
@@ -135,7 +135,48 @@ func Addcontribution(c echo.Context) (err error) {
 	res.Likes = 0
 	//date := currentdate.Format("2006-01-02 3:4:5 PM")
 	res.ContributionPostDate = currentdate
-	db.Insert(res)
+	if res.ID == "" {
+		db.Insert(res)
+	} else {
+		result := shared.ContributionPostData{}
+		//fmt.Println("%T \n", result)
+		err = db.Find(bson.M{"_id": res.ID}).One(&result)
+		newdata := shared.ContributionPostData{}
+		newdata = result
+		//		staticpath := shared.FILEBUCKETURL
+
+		newdata.AdminStatus = 0
+		if len(res.Website) > 0 {
+			newdata.Website = res.Website
+		}
+		//fmt.Println("conver page ******************* /n", res.Coverpage)
+		if res.Coverpage != "" {
+			newdata.Coverpage = res.Coverpage
+		}
+		if len(res.Tags) > 0 {
+			newdata.Tags = res.Tags
+		}
+		if res.Title != "" {
+			newdata.Title = res.Title
+		}
+		if res.MainCategory != "" {
+			newdata.MainCategory = res.MainCategory
+		}
+		if res.SubCategories != "" {
+			newdata.SubCategories = res.SubCategories
+		}
+		if res.Videos != "" {
+			newdata.Videos = res.Videos
+		}
+		if len(res.Images) > 0 {
+			newdata.Images = res.Images
+		}
+		if res.ContributionStatus != "" {
+			newdata.ContributionStatus = res.ContributionStatus
+		}
+		db.Update(result, newdata)
+	}
+
 	//fmt.Println(db)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
@@ -347,7 +388,7 @@ func Editcontribution(c echo.Context) (err error) {
 		fmt.Println("error:", err)
 	}
 	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes
@@ -367,6 +408,7 @@ func Editcontribution(c echo.Context) (err error) {
 	if len(res.Website) > 0 {
 		newdata.Website = res.Website
 	}
+	//fmt.Println("conver page ******************* /n", res.Coverpage)
 	if res.Coverpage != "" {
 		newdata.Coverpage = staticpath + res.Coverpage
 	}
@@ -409,8 +451,8 @@ func SearchContributionById(c echo.Context) (err error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("search contribution by id")
+	//os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r shared.ContributionRes

@@ -61,9 +61,9 @@ func GetAllPreferences(c echo.Context) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(results)
+	//fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	fmt.Println(string(buff))
+	//fmt.Println(string(buff))
 
 	json.Unmarshal(buff, &results)
 	defer session.Close()

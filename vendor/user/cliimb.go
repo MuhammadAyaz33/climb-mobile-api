@@ -583,9 +583,11 @@ func UpdateProfile(c echo.Context) (err error) {
 
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
 
-	if res.ParentEmail == result.ParentEmail {
-		defer session.Close()
-		return c.JSON(http.StatusOK, "you already kid of this parent email")
+	if res.ParentEmail != "" {
+		if res.ParentEmail == result.ParentEmail {
+			defer session.Close()
+			return c.JSON(http.StatusOK, "you already kid of this parent email")
+		}
 	}
 	newdata := shared.UserUpdateData{}
 	newdata = result
