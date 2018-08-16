@@ -583,12 +583,6 @@ func UpdateProfile(c echo.Context) (err error) {
 
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
 
-	if res.ParentEmail != "" {
-		if res.ParentEmail == result.ParentEmail {
-			defer session.Close()
-			return c.JSON(http.StatusOK, "you already kid of this parent email")
-		}
-	}
 	newdata := shared.UserUpdateData{}
 	newdata = result
 	if res.FullName != "" {
@@ -638,12 +632,18 @@ func UpdateProfile(c echo.Context) (err error) {
 
 	}
 	if res.ParentEmail != "" {
-		newdata.ParentEmail = res.ParentEmail
-		var maintoken string
-		maintoken = sendemail(res.ParentEmail, "parent", res.Email)
+		if result.ParentEmail == "" {
+			newdata.ParentEmail = res.ParentEmail
+			var maintoken string
+			maintoken = sendemail(res.ParentEmail, "parent", res.Email)
 
-		ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
-		//fmt.Println(maintoken)
+			ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
+			//fmt.Println(maintoken)
+		}
+		if res.ParentEmail == result.ParentEmail {
+			newdata.ParentEmail = res.ParentEmail
+		}
+
 	}
 	if res.ParentPhone <= 0 {
 		newdata.ParentPhone = res.ParentPhone
