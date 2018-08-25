@@ -296,6 +296,46 @@ func (self *getData) removeFriend(item postData) {
 	}
 }
 
+func RemoveCategory(c echo.Context) (err error) {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.PREFERENCESCOLLECTION)
+	//name:=c.FormValue("Cms")
+	//fmt.Println(name)
+	//name =c.FormValue("name")
+	u := new(postData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := postData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("Remove Category")
+	//os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r Res
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+
+	// fmt.Println(res)
+	// result := getData{}
+
+	err = db.Remove(bson.M{"category": res.Category})
+
+	if err != nil {
+		defer session.Close()
+		return c.JSON(http.StatusOK, "not able to delete")
+	}
+	defer session.Close()
+	return c.JSON(http.StatusOK, 1)
+
+}
+
 func Addsubcategory(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.PREFERENCESCOLLECTION)

@@ -63,6 +63,7 @@ func main() {
 	e.POST("/addcategory", preferences.AddCategory)
 	e.PUT("/removesubcategory", preferences.RemoveSubcategory)
 	e.PUT("/addsubcategory", preferences.Addsubcategory)
+	e.POST("/removecategory", preferences.RemoveCategory)
 
 	e.PUT("/updateall", preferences.PutPreferences)
 
