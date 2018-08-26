@@ -752,14 +752,959 @@ func sendemail(email string, check string, useremail string) (s string) {
 	var emailsubject string
 	if check == "adduser" {
 		emailsubject = "Cliiimb Registration"
-		sendmessage = fmt.Sprintf("Hello <b>testing</b> </br> click here to verify the email <a href='http://18.216.55.104:4200/email-verified?token=%s&useremail=%s'>Click here</a>", tokenString, email)
+		// sendmessage = fmt.Sprintf("Hello <b>testing</b> </br> click here to verify the email <a href='http://18.216.55.104:4200/email-verified?token=%s&useremail=%s'>Click here</a>", tokenString, email)
+		sendmessage = fmt.Sprintf(`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+		<html xmlns="http://www.w3.org/1999/xhtml">
+		   <head>
+			  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+			  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			  <title>Cliiimb</title>
+			  
+			  <style type="text/css">
+				 /* Client-specific Styles */
+				 #outlook a {padding:0;} /* Force Outlook to provide a "view in browser" menu link. */
+				 body{width:100% !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; margin:0; padding:0;background: #F5F5F4;}
+				 /* Prevent Webkit and Windows Mobile platforms from changing default font sizes, while not breaking desktop design. */
+				 .ExternalClass {width:100%;} /* Force Hotmail to display emails at full width */
+				 .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {line-height: 100%;} /* Force Hotmail to display normal line spacing.*/
+				 #backgroundTable {margin:0; padding:0; width:100% !important; line-height: 100% !important;background: #F5F5F4;}
+				 img {outline:none; text-decoration:none;border:none; -ms-interpolation-mode: bicubic;}
+				 a img {border:none;}
+				 .image_fix {display:block;}
+				 p {margin: 0px 0px !important;}
+				 table td {border-collapse: collapse;}
+				 table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+				 a {color: #0a8cce;text-decoration: none;text-decoration:none!important;}
+				 /*STYLES*/
+				 table[class=full] { width: 100%; clear: both; }
+				 /*IPAD STYLES*/
+				 @media only screen and (max-width: 640px) {
+				 a[href^="tel"], a[href^="sms"] {
+				 text-decoration: none;
+				 color: #0a8cce; /* or whatever your want */
+				 pointer-events: none;
+				 cursor: default;
+				 }
+				 .mobile_link a[href^="tel"], .mobile_link a[href^="sms"] {
+				 text-decoration: default;
+				 color: #0a8cce !important;
+				 pointer-events: auto;
+				 cursor: default;
+				 }
+				 table[class=devicewidth] {width: 440px!important;text-align:center!important;}
+				 table[class=devicewidthinner] {width: 420px!important;text-align:center!important;}
+				 img[class=banner] {width: 440px!important;height:220px!important;}
+				 img[class=colimg2] {width: 440px!important;height:220px!important;}
+				 
+				 
+				 }
+				 /*IPHONE STYLES*/
+				 @media only screen and (max-width: 480px) {
+				 a[href^="tel"], a[href^="sms"] {
+				 text-decoration: none;
+				 color: #0a8cce; /* or whatever your want */
+				 pointer-events: none;
+				 cursor: default;
+				 }
+				 .mobile_link a[href^="tel"], .mobile_link a[href^="sms"] {
+				 text-decoration: default;
+				 color: #0a8cce !important; 
+				 pointer-events: auto;
+				 cursor: default;
+				 }
+				 table[class=devicewidth] {width: 280px!important;text-align:center!important;}
+				 table[class=devicewidthinner] {width: 260px!important;text-align:center!important;}
+				 img[class=banner] {width: 280px!important;height:140px!important;}
+				 img[class=colimg2] {width: 280px!important;height:140px!important;}
+				 td[class=mobile-hide]{display:none!important;}
+				 td[class="padding-bottom25"]{padding-bottom:25px!important;}
+				
+				 }
+			  </style>
+		   </head>
+		   <body bgcolor="#F5F5F4" style="background: #F5F5F4 !important;"><br /><br />
+		<!-- Start of preheader -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="seperator">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" align="center" cellspacing="0" cellpadding="0" border="0" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td align="center" height="20" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+			 
+		<!-- Start of header -->
+		
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="header">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+								   
+									  <tr>
+										 <td>
+											<!-- logo -->
+											<table width="200" align="" border="0" cellpadding="0" cellspacing="0" class="devicewidth">
+											   <tbody>
+												  <tr>
+													 <td width="200" height="45" align="">
+														<div class="imgpop">
+														   <a target="_blank" href="#">
+														   <img src="https://s3.us-east-2.amazonaws.com/climbmentors/logo.svg" alt="" border="0" width="" height="54" style="display:block; border:none; outline:none; text-decoration:none;">
+														   </a>
+														</div>
+													 </td>
+												  </tr>
+											   </tbody>
+											</table>
+											<!-- end of logo -->
+										 </td>
+									  </tr>
+									  <!-- Spacing -->
+									  
+									  <!-- Spacing -->
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of Header -->
+		
+		<!-- Start Full Text -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="full-text">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									  
+									  <tr>
+										 <td>
+											<table width="560" align="left" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="background: #fff;">
+											   <tbody>
+												  <!-- Title -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 30px; color: #0F1A59; text-align:left; line-height: 40px;" st-title="fulltext-heading">
+														Thanks for joining Cliiimb!
+													 </td>
+												  </tr>
+												  <!-- End of Title -->
+												 
+												  <!-- content -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #0F1A59; text-align:left; line-height: 25px;
+			font-weight: bold;" st-content="fulltext-content">
+														Please confirm that your email address is correct to continue. Click the link below to get started. 
+													 </td>
+												  </tr>
+												  <!-- End of content -->
+											   </tbody>
+											</table>
+										 </td>
+									  </tr>
+									 
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of full text -->
+		<!-- Start of seperator -->
+		
+		<!-- End of seperator -->   
+		<!-- 3 Start of Columns -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable">
+		   <tbody>
+			  <tr>
+				 <td>
+				   
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of 3 Columns -->
+		<!-- Start of seperator -->
+		
+		<!-- End of seperator --> 
+		<!-- 2columns -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="2columns">
+		   <tbody>
+			  <tr>
+				 <td>
+				   
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of 2 columns -->
+		 
+		<!-- Start Full Text -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="full-text">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									 
+									  <tr>
+										 <td>
+											<table width="560" align="left" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="background: #fff;">
+											   <tbody>
+												  <!-- Title -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #fff; text-align:left; line-height: 10px;" st-title="fulltext-title">
+														<a href="http://18.216.55.104:4200/email-verified?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff !important;">Confirm Email Address</a>
+													 </td>
+												  </tr>
+												  <!-- End of Title -->
+												  
+												  <!-- content -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;" st-content="fulltext-content">
+														
+													 </td>
+												  </tr>
+												  <!-- End of content -->
+											   </tbody>
+											</table>
+										 </td>
+									  </tr>
+									  <!-- Spacing -->
+									  <tr>
+										 <td ></td>
+									  </tr>
+									  <!-- Spacing -->
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of full text -->
+		<!-- Start of seperator -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="seperator">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" align="center" cellspacing="0" cellpadding="0" border="0" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  
+						  <tr>
+							 <td width="550" align="center" height="1" bgcolor="#d1d1d1" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr>
+					  <!--     <tr>
+							 <td align="center" height="30" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr> -->
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of seperator -->  
+		<!-- Start of Postfooter -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="postfooter" >
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="left" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									  <tr>
+										 <td align="left" valign="middle" style="font-family: Helvetica, arial, sans-serif; font-weight:300;font-size: 16px;color: #252C65" st-content="postfooter">
+											Visit <a href="#" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
+										 </td>
+									  </tr>
+								  
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of postfooter -->
+		   
+		   </body>
+		   </html>`, tokenString, email)
 
 	} else if check == "password" {
 		emailsubject = "Cliiimb Password Reset"
-		sendmessage = fmt.Sprintf("Hello <b>testing</b> </br> click here to change password <a href='http://18.216.55.104:4200/reset-password?token=%s&useremail=%s'>Click here</a>", tokenString, email)
+		//sendmessage = fmt.Sprintf("Hello <b>testing</b> </br> click here to change password <a href='http://18.216.55.104:4200/reset-password?token=%s&useremail=%s'>Click here</a>", tokenString, email)
+
+		sendmessage = fmt.Sprintf(`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+		<html xmlns="http://www.w3.org/1999/xhtml">
+		   <head>
+			  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+			  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			  <title>Cliiimb</title>
+			  
+			  <style type="text/css">
+				 /* Client-specific Styles */
+				 #outlook a {padding:0;} /* Force Outlook to provide a "view in browser" menu link. */
+				 body{width:100% !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; margin:0; padding:0;background: #F5F5F4;}
+				 /* Prevent Webkit and Windows Mobile platforms from changing default font sizes, while not breaking desktop design. */
+				 .ExternalClass {width:100%;} /* Force Hotmail to display emails at full width */
+				 .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {line-height: 100%;} /* Force Hotmail to display normal line spacing.*/
+				 #backgroundTable {margin:0; padding:0; width:100% !important; line-height: 100% !important;background: #F5F5F4;}
+				 img {outline:none; text-decoration:none;border:none; -ms-interpolation-mode: bicubic;}
+				 a img {border:none;}
+				 .image_fix {display:block;}
+				 p {margin: 0px 0px !important;}
+				 table td {border-collapse: collapse;}
+				 table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+				 a {color: #0a8cce;text-decoration: none;text-decoration:none!important;}
+				 /*STYLES*/
+				 table[class=full] { width: 100%; clear: both; }
+				 /*IPAD STYLES*/
+				 @media only screen and (max-width: 640px) {
+				 a[href^="tel"], a[href^="sms"] {
+				 text-decoration: none;
+				 color: #0a8cce; /* or whatever your want */
+				 pointer-events: none;
+				 cursor: default;
+				 }
+				 .mobile_link a[href^="tel"], .mobile_link a[href^="sms"] {
+				 text-decoration: default;
+				 color: #0a8cce !important;
+				 pointer-events: auto;
+				 cursor: default;
+				 }
+				 table[class=devicewidth] {width: 440px!important;text-align:center!important;}
+				 table[class=devicewidthinner] {width: 420px!important;text-align:center!important;}
+				 img[class=banner] {width: 440px!important;height:220px!important;}
+				 img[class=colimg2] {width: 440px!important;height:220px!important;}
+				 
+				 
+				 }
+				 /*IPHONE STYLES*/
+				 @media only screen and (max-width: 480px) {
+				 a[href^="tel"], a[href^="sms"] {
+				 text-decoration: none;
+				 color: #0a8cce; /* or whatever your want */
+				 pointer-events: none;
+				 cursor: default;
+				 }
+				 .mobile_link a[href^="tel"], .mobile_link a[href^="sms"] {
+				 text-decoration: default;
+				 color: #0a8cce !important; 
+				 pointer-events: auto;
+				 cursor: default;
+				 }
+				 table[class=devicewidth] {width: 280px!important;text-align:center!important;}
+				 table[class=devicewidthinner] {width: 260px!important;text-align:center!important;}
+				 img[class=banner] {width: 280px!important;height:140px!important;}
+				 img[class=colimg2] {width: 280px!important;height:140px!important;}
+				 td[class=mobile-hide]{display:none!important;}
+				 td[class="padding-bottom25"]{padding-bottom:25px!important;}
+				
+				 }
+			  </style>
+		   </head>
+		   <body bgcolor="#F5F5F4" style="background: #F5F5F4 !important;"><br /><br />
+		<!-- Start of preheader -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="seperator">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" align="center" cellspacing="0" cellpadding="0" border="0" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td align="center" height="20" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+			 
+		<!-- Start of header -->
+		
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="header">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+								   
+									  <tr>
+										 <td>
+											<!-- logo -->
+											<table width="200" align="" border="0" cellpadding="0" cellspacing="0" class="devicewidth">
+											   <tbody>
+												  <tr>
+													 <td width="200" height="45" align="">
+														<div class="imgpop">
+														   <a target="_blank" href="#">
+														   <img src="https://s3.us-east-2.amazonaws.com/climbmentors/logo.svg" alt="" border="0" width="" height="54" style="display:block; border:none; outline:none; text-decoration:none;">
+														   </a>
+														</div>
+													 </td>
+												  </tr>
+											   </tbody>
+											</table>
+											<!-- end of logo -->
+										 </td>
+									  </tr>
+									  <!-- Spacing -->
+									  
+									  <!-- Spacing -->
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of Header -->
+		
+		<!-- Start Full Text -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="full-text">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									  
+									  <tr>
+										 <td>
+											<table width="560" align="left" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="background: #fff;">
+											   <tbody>
+												  <!-- Title -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 30px; color: #0F1A59; text-align:left; line-height: 40px;" st-title="fulltext-heading">
+														Hi
+													 </td>
+												  </tr>
+												  <!-- End of Title -->
+												 
+												  <!-- content -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #0F1A59; text-align:left; line-height: 25px;
+			font-weight: bold;" st-content="fulltext-content">
+			You recently requested to reset your password for your Cliiimb Account. Use the button to reset it.
+													 </td>
+												  </tr>
+												  <!-- End of content -->
+											   </tbody>
+											</table>
+										 </td>
+									  </tr>
+									 
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of full text -->
+		<!-- Start of seperator -->
+		
+		<!-- End of seperator -->   
+		<!-- 3 Start of Columns -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable">
+		   <tbody>
+			  <tr>
+				 <td>
+				   
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of 3 Columns -->
+		<!-- Start of seperator -->
+		
+		<!-- End of seperator --> 
+		<!-- 2columns -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="2columns">
+		   <tbody>
+			  <tr>
+				 <td>
+				   
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of 2 columns -->
+		 
+		<!-- Start Full Text -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="full-text">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									 
+									  <tr>
+										 <td>
+											<table width="560" align="left" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="background: #fff;">
+											   <tbody>
+												  <!-- Title -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #fff; text-align:left; line-height: 10px;" st-title="fulltext-title">
+														<a href="http://18.216.55.104:4200/email-verified?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff !important;">Reset Your Password</a>
+													 </td>
+												  </tr>
+												  <!-- End of Title -->
+												  
+												  <!-- content -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;" st-content="fulltext-content">
+														
+													 </td>
+												  </tr>
+												  <!-- End of content -->
+											   </tbody>
+											</table>
+										 </td>
+									  </tr>
+									  <!-- Spacing -->
+									  <tr>
+										 <td ></td>
+									  </tr>
+									  <!-- Spacing -->
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of full text -->
+		<!-- Start of seperator -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="seperator">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" align="center" cellspacing="0" cellpadding="0" border="0" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  
+						  <tr>
+							 <td width="550" align="center" height="1" bgcolor="#d1d1d1" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr>
+					  <!--     <tr>
+							 <td align="center" height="30" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr> -->
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of seperator -->  
+		<!-- Start of Postfooter -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="postfooter" >
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="left" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									  <tr>
+										 <td align="left" valign="middle" style="font-family: Helvetica, arial, sans-serif; font-weight:300;font-size: 16px;color: #252C65" st-content="postfooter">
+											Visit <a href="#" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
+										 </td>
+									  </tr>
+								  
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of postfooter -->
+		   
+		   </body>
+		   </html>`, tokenString, email)
+
 	} else if check == "parent" {
 		emailsubject = "Cliiimb Registration"
-		sendmessage = fmt.Sprintf("Hello <b>testing</b> </br> your childern is try to register to cliimb please click here to to verifity your childern <a href='http://18.216.55.104:4200/email-verified?token=%s&useremail=%s'>Click here</a>", tokenString, useremail)
+		//sendmessage = fmt.Sprintf("Hello <b>testing</b> </br> your childern is try to register to cliimb please click here to to verifity your childern <a href='http://18.216.55.104:4200/email-verified?token=%s&useremail=%s'>Click here</a>", tokenString, useremail)
+
+		sendmessage = fmt.Sprintf(`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+		<html xmlns="http://www.w3.org/1999/xhtml">
+		   <head>
+			  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+			  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			  <title>Cliiimb</title>
+			  
+			  <style type="text/css">
+				 /* Client-specific Styles */
+				 #outlook a {padding:0;} /* Force Outlook to provide a "view in browser" menu link. */
+				 body{width:100% !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; margin:0; padding:0;background: #F5F5F4;}
+				 /* Prevent Webkit and Windows Mobile platforms from changing default font sizes, while not breaking desktop design. */
+				 .ExternalClass {width:100%;} /* Force Hotmail to display emails at full width */
+				 .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {line-height: 100%;} /* Force Hotmail to display normal line spacing.*/
+				 #backgroundTable {margin:0; padding:0; width:100% !important; line-height: 100% !important;background: #F5F5F4;}
+				 img {outline:none; text-decoration:none;border:none; -ms-interpolation-mode: bicubic;}
+				 a img {border:none;}
+				 .image_fix {display:block;}
+				 p {margin: 0px 0px !important;}
+				 table td {border-collapse: collapse;}
+				 table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+				 a {color: #0a8cce;text-decoration: none;text-decoration:none!important;}
+				 /*STYLES*/
+				 table[class=full] { width: 100%; clear: both; }
+				 /*IPAD STYLES*/
+				 @media only screen and (max-width: 640px) {
+				 a[href^="tel"], a[href^="sms"] {
+				 text-decoration: none;
+				 color: #0a8cce; /* or whatever your want */
+				 pointer-events: none;
+				 cursor: default;
+				 }
+				 .mobile_link a[href^="tel"], .mobile_link a[href^="sms"] {
+				 text-decoration: default;
+				 color: #0a8cce !important;
+				 pointer-events: auto;
+				 cursor: default;
+				 }
+				 table[class=devicewidth] {width: 440px!important;text-align:center!important;}
+				 table[class=devicewidthinner] {width: 420px!important;text-align:center!important;}
+				 img[class=banner] {width: 440px!important;height:220px!important;}
+				 img[class=colimg2] {width: 440px!important;height:220px!important;}
+				 
+				 
+				 }
+				 /*IPHONE STYLES*/
+				 @media only screen and (max-width: 480px) {
+				 a[href^="tel"], a[href^="sms"] {
+				 text-decoration: none;
+				 color: #0a8cce; /* or whatever your want */
+				 pointer-events: none;
+				 cursor: default;
+				 }
+				 .mobile_link a[href^="tel"], .mobile_link a[href^="sms"] {
+				 text-decoration: default;
+				 color: #0a8cce !important; 
+				 pointer-events: auto;
+				 cursor: default;
+				 }
+				 table[class=devicewidth] {width: 280px!important;text-align:center!important;}
+				 table[class=devicewidthinner] {width: 260px!important;text-align:center!important;}
+				 img[class=banner] {width: 280px!important;height:140px!important;}
+				 img[class=colimg2] {width: 280px!important;height:140px!important;}
+				 td[class=mobile-hide]{display:none!important;}
+				 td[class="padding-bottom25"]{padding-bottom:25px!important;}
+				
+				 }
+			  </style>
+		   </head>
+		   <body bgcolor="#F5F5F4" style="background: #F5F5F4 !important;"><br /><br />
+		<!-- Start of preheader -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="seperator">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" align="center" cellspacing="0" cellpadding="0" border="0" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td align="center" height="20" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+			 
+		<!-- Start of header -->
+		
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="header">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+								   
+									  <tr>
+										 <td>
+											<!-- logo -->
+											<table width="200" align="" border="0" cellpadding="0" cellspacing="0" class="devicewidth">
+											   <tbody>
+												  <tr>
+													 <td width="200" height="45" align="">
+														<div class="imgpop">
+														   <a target="_blank" href="#">
+														   <img src="https://s3.us-east-2.amazonaws.com/climbmentors/logo.svg" alt="" border="0" width="" height="54" style="display:block; border:none; outline:none; text-decoration:none;">
+														   </a>
+														</div>
+													 </td>
+												  </tr>
+											   </tbody>
+											</table>
+											<!-- end of logo -->
+										 </td>
+									  </tr>
+									  <!-- Spacing -->
+									  
+									  <!-- Spacing -->
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of Header -->
+		
+		<!-- Start Full Text -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="full-text">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									  
+									  <tr>
+										 <td>
+											<table width="560" align="left" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="background: #fff;">
+											   <tbody>
+												  <!-- Title -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 30px; color: #0F1A59; text-align:left; line-height: 40px;" st-title="fulltext-heading">
+														Hi
+													 </td>
+												  </tr>
+												  <!-- End of Title -->
+												 
+												  <!-- content -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #0F1A59; text-align:left; line-height: 25px;
+			font-weight: bold;" st-content="fulltext-content">
+			Your Childern is recently try to register on Cliiimb. Please Click the below button and allow to join Cliiimb.
+													 </td>
+												  </tr>
+												  <!-- End of content -->
+											   </tbody>
+											</table>
+										 </td>
+									  </tr>
+									 
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of full text -->
+		<!-- Start of seperator -->
+		
+		<!-- End of seperator -->   
+		<!-- 3 Start of Columns -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable">
+		   <tbody>
+			  <tr>
+				 <td>
+				   
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of 3 Columns -->
+		<!-- Start of seperator -->
+		
+		<!-- End of seperator --> 
+		<!-- 2columns -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="2columns">
+		   <tbody>
+			  <tr>
+				 <td>
+				   
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of 2 columns -->
+		 
+		<!-- Start Full Text -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="full-text">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									 
+									  <tr>
+										 <td>
+											<table width="560" align="left" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="background: #fff;">
+											   <tbody>
+												  <!-- Title -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #fff; text-align:left; line-height: 10px;" st-title="fulltext-title">
+														<a href="http://18.216.55.104:4200/email-verified?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff !important;">Allow</a>
+													 </td>
+												  </tr>
+												  <!-- End of Title -->
+												  
+												  <!-- content -->
+												  <tr>
+													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #666666; text-align:center; line-height: 30px;" st-content="fulltext-content">
+														
+													 </td>
+												  </tr>
+												  <!-- End of content -->
+											   </tbody>
+											</table>
+										 </td>
+									  </tr>
+									  <!-- Spacing -->
+									  <tr>
+										 <td ></td>
+									  </tr>
+									  <!-- Spacing -->
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- end of full text -->
+		<!-- Start of seperator -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="seperator">
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" align="center" cellspacing="0" cellpadding="0" border="0" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  
+						  <tr>
+							 <td width="550" align="center" height="1" bgcolor="#d1d1d1" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr>
+					  <!--     <tr>
+							 <td align="center" height="30" style="font-size:1px; line-height:1px;">&nbsp;</td>
+						  </tr> -->
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of seperator -->  
+		<!-- Start of Postfooter -->
+		<table width="100%" bgcolor="#ffffff" cellpadding="0" cellspacing="0" border="0" id="backgroundTable" st-sortable="postfooter" >
+		   <tbody>
+			  <tr>
+				 <td>
+					<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" class="devicewidth" style="background: #fff;">
+					   <tbody>
+						  <tr>
+							 <td width="100%">
+								<table width="600" cellpadding="20" cellspacing="0" border="0" align="left" class="devicewidth" style="background: #fff;">
+								   <tbody>
+									  <tr>
+										 <td align="left" valign="middle" style="font-family: Helvetica, arial, sans-serif; font-weight:300;font-size: 16px;color: #252C65" st-content="postfooter">
+											Visit <a href="#" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
+										 </td>
+									  </tr>
+								  
+								   </tbody>
+								</table>
+							 </td>
+						  </tr>
+					   </tbody>
+					</table>
+				 </td>
+			  </tr>
+		   </tbody>
+		</table>
+		<!-- End of postfooter -->
+		   
+		   </body>
+		   </html>`, tokenString, useremail)
 	}
 
 	m := gomail.NewMessage()
