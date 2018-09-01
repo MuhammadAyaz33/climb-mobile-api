@@ -814,7 +814,7 @@ func SearchSubContribution(c echo.Context) (err error) {
 			data.Data = append(data.Data, resulttag.Data[x])
 		}
 	}
-	err = db.Find(bson.M{"maincategory": res.SubCategories, "contributiontype": "contribution"}).All(&resultmaincategory.Data)
+	err = db.Find(bson.M{"maincategory": bson.RegEx{"^.*" + res.MainCategory + "", "i"}, "contributiontype": "contribution"}).All(&resultmaincategory.Data)
 	if resultmaincategory.Data != nil {
 		for x := range resultmaincategory.Data {
 			data.Data = append(data.Data, resultmaincategory.Data[x])
