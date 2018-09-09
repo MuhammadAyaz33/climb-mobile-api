@@ -585,6 +585,11 @@ func UpdateProfile(c echo.Context) (err error) {
 
 	newdata := shared.UserUpdateData{}
 	newdata = result
+	if res.Password != "" {
+		hash := hashAndSalt([]byte(res.Password))
+		//res.Password = hash
+		newdata.Password = hash
+	}
 	if res.FullName != "" {
 		newdata.FullName = res.FullName
 	}
