@@ -27,6 +27,7 @@ func main() {
 	// USER FUNCTIONS
 	e.GET("/getalluser", user.GetAll)
 	e.POST("/registration", user.Adduser)
+	e.POST("/addadmin", user.AddAdmin)
 	e.POST("/login", user.Login)
 	e.PUT("/editprofile", user.EditProfile)
 	e.PUT("/editaboutme", user.Updateaboutme)
@@ -52,6 +53,7 @@ func main() {
 	e.POST("/searchevent", contribution.SearchEvent)
 	e.POST("/searchingcontribution", contribution.SearchSubContribution)
 	e.POST("/rejectcontribution", contribution.RejectContribution)
+	e.GET("/getallrejectedcontribution", contribution.GetAllRejectedContribution)
 
 	// PREFERENCES FUNCTION
 

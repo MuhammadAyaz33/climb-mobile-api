@@ -139,6 +139,82 @@ func Adduser(c echo.Context) (err error) {
 
 }
 
+type Response struct {
+	Message string `json:"message"`
+	Status  bool   `json:"status"`
+}
+
+func AddAdmin(c echo.Context) (err error) {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
+	//name:=c.FormValue("Cms")
+	//fmt.Println(name)
+	//name =c.FormValue("name")
+	//fmt.Println(name)
+	//u:=new (postData)
+	u := new(shared.UserUpdateData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.UserUpdateData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	//os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.UserRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res)
+	results := shared.Userres{}
+	err = db.Find(bson.M{"email": res.Email}).All(&results.Data)
+	response := Response{}
+	if results.Data == nil {
+
+		var mySigningKey = []byte(res.Email)
+		token := jwt.New(jwt.SigningMethodHS256)
+		maintoken, _ := token.SignedString(mySigningKey)
+
+		// var maintoken string
+		//maintoken = sendemail(res.Email, "adduser", "user")
+		//fmt.Println("this is token /n")
+		//fmt.Println(maintoken)
+		VerificationTokenSave(res.Email, maintoken, "adduser")
+		res.Status = 1
+		//parent := res.ParentStatus
+		res.ParentStatus = 1
+		res.Age = 21
+		res.ParentPhone = 0
+		hash := hashAndSalt([]byte(res.Password))
+		res.Password = hash
+		res.UserType = "admin"
+		res.FullName = "Admin"
+		//res.MentorStatus = 0
+		db.Insert(res)
+		response.Message = "Admin Added"
+		response.Status = true
+
+	} else {
+		//fmt.Println("user available try to login")
+		response.Message = "User Already Exits"
+		response.Status = false
+		defer session.Close()
+		return c.JSON(http.StatusOK, response)
+
+	}
+	//db.Insert(res)
+	defer session.Close()
+	return c.JSON(http.StatusOK, response)
+
+}
+
 //encrypt password
 func hashAndSalt(pwd []byte) string {
 

@@ -45,6 +45,33 @@ func ContributionGetAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, &results)
 
 }
+func GetAllRejectedContribution(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	results := shared.Contributionres{}
+	err = db.Find(bson.M{"contributionstatus": "Reject"}).All(&results.Data)
+
+	//  |  for one result
+	//  V
+	//result := getData{}
+	//err = db.Find(bson.M{"name": "two"}).One(&result)
+	fmt.Println("Get All Rejected Contribution")
+	if err != nil {
+
+	}
+	if results.Data == nil {
+		return c.JSON(http.StatusOK, 0)
+	}
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &results)
+
+}
 func GetAllEvent(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -825,6 +852,11 @@ func SearchSubContribution(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, &data)
 }
 
+type Response struct {
+	Message string `json:"message"`
+	Status  bool   `json:"status"`
+}
+
 func RejectContribution(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
@@ -859,6 +891,9 @@ func RejectContribution(c echo.Context) (err error) {
 	db.Update(result, newdata)
 	contributionid := fmt.Sprintf("%x", string(result.ID))
 	notification.AddAdminRejectContributionHistory(result.UserID, contributionid, result.Title, result.ContributionType)
+	response := Response{}
+	response.Status = true
+	response.Message = "Successfuly Rejected"
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
+	return c.JSON(http.StatusOK, response)
 }
