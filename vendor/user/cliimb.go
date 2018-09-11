@@ -195,7 +195,8 @@ func AddAdmin(c echo.Context) (err error) {
 		hash := hashAndSalt([]byte(res.Password))
 		res.Password = hash
 		res.UserType = "admin"
-		res.FullName = "Admin"
+		res.FullName = "Cliiimb Admin"
+		res.ProfilePicture = "https://s3.us-east-2.amazonaws.com/climbmentors/2bad8322b2af2cb0513a503b0346d881d7737337.jpg"
 		//res.MentorStatus = 0
 		db.Insert(res)
 		response.Message = "Admin Added"

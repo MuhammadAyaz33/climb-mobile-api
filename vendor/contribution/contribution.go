@@ -162,6 +162,9 @@ func Addcontribution(c echo.Context) (err error) {
 	res.Likes = 0
 	//date := currentdate.Format("2006-01-02 3:4:5 PM")
 	res.ContributionPostDate = currentdate
+	if res.UserFullName == "Cliiimb Article" {
+		res.AdminStatus = 1
+	}
 	if res.ID == "" {
 		db.Insert(res)
 	} else {
@@ -173,6 +176,9 @@ func Addcontribution(c echo.Context) (err error) {
 		//		staticpath := shared.FILEBUCKETURL
 
 		newdata.AdminStatus = 0
+		if res.UserFullName == "Cliiimb Article" {
+			res.AdminStatus = 1
+		}
 		if len(res.Website) > 0 {
 			newdata.Website = res.Website
 		}
