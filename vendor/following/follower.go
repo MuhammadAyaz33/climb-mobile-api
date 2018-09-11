@@ -8,7 +8,6 @@ import (
 	"notification"
 	"os"
 	"shared"
-	"strconv"
 
 	"github.com/labstack/echo"
 	"github.com/rs/xid"
@@ -50,7 +49,7 @@ type Res struct {
 type GetUserData struct {
 	UserID   string        `json:"userid"`
 	Follower []postProduct `json:"follower"`
-	Age      string        `json:"userage"`
+	Age      int           `json:"userage"`
 	FollowID string        `json:"followid"`
 }
 
@@ -249,11 +248,7 @@ func AddMentor(c echo.Context) (err error) {
 		// userfollower.Follower[0].MessageStatus = 0
 		var agestatus int
 		var msgstatus int
-		age, err := strconv.Atoi(res.Age)
-		if err != nil {
-			fmt.Println(err)
-			//fmt.Println(age)
-		}
+		age := res.Age
 
 		if age < 18 {
 			agestatus = 0
@@ -284,11 +279,8 @@ func AddMentor(c echo.Context) (err error) {
 		a := res.Follower[0].Userfollowerid
 		var agestatus int
 		var msgstatus int
-		age, err := strconv.Atoi(res.Age)
-		if err != nil {
-			fmt.Println(err)
-			//fmt.Println(age)
-		}
+		age := res.Age
+
 		if age < 18 {
 			agestatus = 0
 			msgstatus = 0
