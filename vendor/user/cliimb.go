@@ -1880,6 +1880,9 @@ func ViewProfileById(c echo.Context) error {
 		//log.Fatal(err)
 	}
 	//fmt.Println(results)
+	mentorstatus := GetMentorRequest(results.Data[0].Email)
+
+	results.Data[0].MentorStatus = mentorstatus
 	buff, _ := json.Marshal(&results)
 	//fmt.Println(string(buff))
 
