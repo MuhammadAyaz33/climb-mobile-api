@@ -139,7 +139,11 @@ func Addcontribution(c echo.Context) (err error) {
 	}
 
 	if res.Coverpage != "" {
-		res.Coverpage = staticpath + converimage
+		if strings.Contains(converimage, staticpath) {
+			res.UserProfilePicture = converimage
+		} else {
+			res.Coverpage = staticpath + converimage
+		}
 		//fmt.Println("cover page  ******", res.Coverpage)
 	}
 
@@ -175,7 +179,7 @@ func Addcontribution(c echo.Context) (err error) {
 		newdata = result
 		//		staticpath := shared.FILEBUCKETURL
 
-		newdata.AdminStatus = 0
+		// newdata.AdminStatus = 0
 		if res.UserFullName == "Cliiimb Article" {
 			res.AdminStatus = 1
 		}
@@ -206,6 +210,10 @@ func Addcontribution(c echo.Context) (err error) {
 		}
 		if res.ContributionStatus != "" {
 			newdata.ContributionStatus = res.ContributionStatus
+		}
+
+		if res.ContributionText != "" {
+			newdata.ContributionText = res.ContributionText
 		}
 		db.Update(result, newdata)
 	}
@@ -437,7 +445,7 @@ func Editcontribution(c echo.Context) (err error) {
 	newdata = result
 	staticpath := shared.FILEBUCKETURL
 
-	newdata.AdminStatus = 0
+	// newdata.AdminStatus = 0
 	if len(res.Website) > 0 {
 		newdata.Website = res.Website
 	}
