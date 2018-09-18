@@ -1786,8 +1786,16 @@ func Updateaboutme(c echo.Context) (err error) {
 	fmt.Println(res.AboutMe)
 	newdata.AboutMe = res.AboutMe
 	db.Update(result, newdata)
+
+	//fmt.Println(string(buff))
+	result1 := shared.UsergetData{}
+	err = db.Find(bson.M{"email": res.Email}).One(&result1)
+	mentorstatus := GetMentorRequest(res.Email)
+	result1.MentorStatus = mentorstatus
+
 	defer session.Close()
-	return c.JSON(http.StatusOK, &newdata)
+
+	return c.JSON(http.StatusOK, &result1)
 }
 func ViewProfile(c echo.Context) error {
 
