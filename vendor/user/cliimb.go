@@ -1777,12 +1777,13 @@ func Updateaboutme(c echo.Context) (err error) {
 	}
 	//fmt.Println(res)
 	//fmt.Println(res.Data)
-	fmt.Println(res)
+	//fmt.Println(res)
 	result := shared.UserUpdateData{}
 	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
 	newdata := shared.UserUpdateData{}
 	newdata = result
+	fmt.Println(res.AboutMe)
 	newdata.AboutMe = res.AboutMe
 	db.Update(result, newdata)
 	defer session.Close()
