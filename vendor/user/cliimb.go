@@ -1756,10 +1756,10 @@ func Updateaboutme(c echo.Context) (err error) {
 	//name:=c.FormValue("Cms")
 	//fmt.Println(name)
 	//name =c.FormValue("name")
-	u := new(shared.UserpostData)
+	u := new(shared.UserUpdateData)
 	if err = c.Bind(&u); err != nil {
 	}
-	res := shared.UserpostData{}
+	res := shared.UserUpdateData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
 	b, err := json.Marshal(res)
@@ -1778,10 +1778,10 @@ func Updateaboutme(c echo.Context) (err error) {
 	//fmt.Println(res)
 	//fmt.Println(res.Data)
 	fmt.Println(res)
-	result := shared.UsergetData{}
-	fmt.Println("%T \n", result)
+	result := shared.UserUpdateData{}
+	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
-	newdata := shared.UsergetData{}
+	newdata := shared.UserUpdateData{}
 	newdata = result
 	newdata.AboutMe = res.AboutMe
 	db.Update(result, newdata)
