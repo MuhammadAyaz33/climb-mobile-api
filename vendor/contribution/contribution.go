@@ -50,7 +50,7 @@ func GetAllRejectedContribution(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributionstatus": "Reject"}).All(&results.Data)
+	err = db.Find(bson.M{"contributionstatus": "Reject"}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
@@ -77,7 +77,7 @@ func GetAllEvent(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).All(&results.Data)
+	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
@@ -255,7 +255,7 @@ func SearchContribution(c echo.Context) error {
 	email := res.UserEmail
 
 	fmt.Println(email)
-	err = db.Find(bson.M{"useremail": email, "contributiontype": "contribution"}).All(&results.Data)
+	err = db.Find(bson.M{"useremail": email, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -305,7 +305,7 @@ func SearchEventByEmail(c echo.Context) error {
 	email := res.UserEmail
 
 	fmt.Println(email)
-	err = db.Find(bson.M{"useremail": email, "contributiontype": "event"}).All(&results.Data)
+	err = db.Find(bson.M{"useremail": email, "contributiontype": "event"}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -354,7 +354,7 @@ func SearchContributionByCategory(c echo.Context) error {
 	//email :=c.FormValue("email")
 	category := res.MainCategory
 
-	err = db.Find(bson.M{"maincategory": category}).All(&results.Data)
+	err = db.Find(bson.M{"maincategory": category}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -399,7 +399,7 @@ func SearchContributionBySubCategory(c echo.Context) error {
 	//email :=c.FormValue("email")
 	subcategory := res.SubCategories
 
-	err = db.Find(bson.M{"subcategories": subcategory}).All(&results.Data)
+	err = db.Find(bson.M{"subcategories": subcategory}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -809,7 +809,7 @@ func SearchEvent(c echo.Context) (err error) {
 	query["contributiontype"] = "event"
 	query["adminstatus"] = 1
 
-	err = db.Find(query).All(&result.Data)
+	err = db.Find(query).Sort("-contributionpostdate").All(&result.Data)
 	//err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": bson.RegEx{Pattern: res.Location, Options: "i"}, "contributiontype": "event"}).All(&result.Data)
 	//db.Update(result, res)
 	defer session.Close()
@@ -845,20 +845,20 @@ func SearchSubContribution(c echo.Context) (err error) {
 	resultmaincategory := shared.Contributionres{}
 	//fmt.Println("%T \n", result)
 	//err = db.Find(bson.M{"$or": []bson.M{bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "sim"}}, bson.M{"tags": bson.M{"tag": bson.RegEx{"^.*" + res.SubCategories + "", "sm"}}}, bson.M{"maincategory": res.SubCategories}}}).All(&resultsubcategory.Data)
-	err = db.Find(bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "im"}, "contributiontype": "contribution"}).All(&resultsubcategory.Data)
+	err = db.Find(bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "im"}, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&resultsubcategory.Data)
 	if resultsubcategory.Data != nil {
 		for x := range resultsubcategory.Data {
 			data.Data = append(data.Data, resultsubcategory.Data[x])
 		}
 	}
 
-	err = db.Find(bson.M{"tags": bson.M{"tag": strings.ToLower(res.SubCategories)}, "contributiontype": "contribution"}).All(&resulttag.Data)
+	err = db.Find(bson.M{"tags": bson.M{"tag": strings.ToLower(res.SubCategories)}, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&resulttag.Data)
 	if resulttag.Data != nil {
 		for x := range resulttag.Data {
 			data.Data = append(data.Data, resulttag.Data[x])
 		}
 	}
-	err = db.Find(bson.M{"maincategory": bson.RegEx{"^.*" + res.SubCategories + "", "i"}, "contributiontype": "contribution"}).All(&resultmaincategory.Data)
+	err = db.Find(bson.M{"maincategory": bson.RegEx{"^.*" + res.SubCategories + "", "i"}, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&resultmaincategory.Data)
 	if resultmaincategory.Data != nil {
 		for x := range resultmaincategory.Data {
 			data.Data = append(data.Data, resultmaincategory.Data[x])
