@@ -23,7 +23,7 @@ func ContributionGetAll(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributionstatus": "Publish"}).All(&results.Data)
+	err = db.Find(bson.M{"contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
