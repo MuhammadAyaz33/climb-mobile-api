@@ -480,6 +480,9 @@ func Editcontribution(c echo.Context) (err error) {
 	if res.ContributionStatus != "" {
 		newdata.ContributionStatus = res.ContributionStatus
 	}
+	if res.ContributionText != "" {
+		newdata.ContributionText = res.ContributionText
+	}
 	db.Update(result, newdata)
 	defer session.Close()
 	return c.JSON(http.StatusOK, &r)
