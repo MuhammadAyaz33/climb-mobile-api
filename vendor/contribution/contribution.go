@@ -166,7 +166,7 @@ func Addcontribution(c echo.Context) (err error) {
 	res.Likes = 0
 	//date := currentdate.Format("2006-01-02 3:4:5 PM")
 	res.ContributionPostDate = currentdate
-	if res.UserFullName == "Cliiimb Article" {
+	if res.UserFullName == "Cliiimb" {
 		res.AdminStatus = 1
 	}
 	if res.ID == "" {
