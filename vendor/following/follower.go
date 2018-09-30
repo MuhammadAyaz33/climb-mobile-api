@@ -103,13 +103,13 @@ func Getfollower(c echo.Context) error {
 		response = shared.ReturnMessage(false, "Server error", 501, "")
 		return c.JSON(http.StatusOK, response)
 	}
-	if results.Data == nil {
+	if results.Data == nil || len(results.Data[0].Follower) <= 0 {
 		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
 		return c.JSON(http.StatusOK, response)
 	}
 	buff, _ := json.Marshal(&results)
 	json.Unmarshal(buff, &results)
-	response = shared.ReturnMessage(true, "Record Foind", 200, results.Data[0])
+	response = shared.ReturnMessage(true, "Record Found", 200, results.Data[0])
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
 
