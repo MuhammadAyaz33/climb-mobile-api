@@ -40,20 +40,20 @@ func main() {
 	e.GET("/showallcontribution", contribution.ContributionGetAll)
 	e.GET("/showallevent", contribution.GetAllEvent)
 	e.POST("/addcontribution", contribution.Addcontribution)
-	e.POST("/searchcontribution", contribution.SearchContribution)
-	e.POST("/searcheventbyemail", contribution.SearchEventByEmail)
-	e.POST("/searchcontributionbyid", contribution.SearchContributionById)
-	e.POST("/searchcontributionbycategory", contribution.SearchContributionByCategory)
-	e.POST("/searchcontributionbysubcategory", contribution.SearchContributionBySubCategory)
-	e.PUT("/editcontribution", contribution.Editcontribution)
-	e.POST("/deletecontribution", contribution.RemoveOneContribution)
-	e.POST("/addview", contribution.AddView)
-	e.POST("/updatecontributionstatus", contribution.UpdateContributionStatus)
-	e.POST("/updateadminstatus", contribution.UpdateAdminStatus)
-	e.POST("/searchevent", contribution.SearchEvent)
-	e.POST("/searchingcontribution", contribution.SearchSubContribution)
-	e.POST("/rejectcontribution", contribution.RejectContribution)
-	e.GET("/getallrejectedcontribution", contribution.GetAllRejectedContribution)
+	e.POST("/searchcontribution", contribution.SearchContribution)                           //done
+	e.POST("/searcheventbyemail", contribution.SearchEventByEmail)                           //done
+	e.POST("/searchcontributionbyid", contribution.SearchContributionById)                   // done
+	e.POST("/searchcontributionbycategory", contribution.SearchContributionByCategory)       // done
+	e.POST("/searchcontributionbysubcategory", contribution.SearchContributionBySubCategory) // done
+	e.PUT("/editcontribution", contribution.Editcontribution)                                // done
+	e.POST("/deletecontribution", contribution.RemoveOneContribution)                        // done
+	e.POST("/addview", contribution.AddView)                                                 //done
+	e.POST("/updatecontributionstatus", contribution.UpdateContributionStatus)               //done
+	e.POST("/updateadminstatus", contribution.UpdateAdminStatus)                             //done
+	e.POST("/searchevent", contribution.SearchEvent)                                         // done
+	e.POST("/searchingcontribution", contribution.SearchSubContribution)                     //done
+	e.POST("/rejectcontribution", contribution.RejectContribution)                           //done
+	e.GET("/getallrejectedcontribution", contribution.GetAllRejectedContribution)            //done
 
 	// PREFERENCES FUNCTION
 
