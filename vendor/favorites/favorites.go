@@ -52,95 +52,77 @@ type Res struct {
 	Data []postData `json:"Data"`
 }
 
+var response shared.Response
+
 //GET *********************************************************************************
 func GetAllFvrtData(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.FAVORITESCOLLECTION)
 	results := res{}
 	err = db.Find(bson.M{}).All(&results.Data)
-
-	//  |  for one result
-	//  V
-	//result := getData{}
-	//err = db.Find(bson.M{"name": "two"}).One(&result)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 	if results.Data == nil {
-		//fmt.Println("nodata availble")
 		var d = postData{
 			ContributionID: "",
 			Likes:          []likespostProduct{},
 			Comments:       []postProduct{},
 		}
-
 		defer session.Close()
-		return c.JSON(http.StatusOK, d)
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, d)
+		return c.JSON(http.StatusOK, response)
 	}
-	//fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Record found", 200, results.Data)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 
 func GetLikesAndComments(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.FAVORITESCOLLECTION)
 	results := res{}
-
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 
 	err = db.Find(bson.M{"contributionid": res.ContributionID}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
 	}
-	//fmt.Println(results)
-	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
-	json.Unmarshal(buff, &results)
-
 	if results.Data == nil {
-		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
+	buff, _ := json.Marshal(&results)
+	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Record Found", 200, results.Data[0])
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
-
+	return c.JSON(http.StatusOK, response)
 }
 
 //POST *********************************************************************************
 func AddComments(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.FAVORITESCOLLECTION)
-
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
@@ -196,47 +178,34 @@ func AddComments(c echo.Context) (err error) {
 
 func UnLike(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.FAVORITESCOLLECTION)
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-
-	fmt.Println(res)
 	result := getData{}
-
 	err = db.Find(bson.M{"contributionid": res.ContributionID}).One(&result)
-
 	result.removelike(res)
 
 	result1 := getData{}
-
 	err = db.Find(bson.M{"contributionid": res.ContributionID}).One(&result1)
 	if err != nil {
-		//fmt.Println(err)
-		return c.JSON(http.StatusOK, "data not found")
+		response = shared.ReturnMessage(false, "Record not Found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	db.Update(result1, result)
-	//fmt.Println(check)
 	UpdateUnLikeCount(res.ContributionID)
 	likecount := GetLikeCount(res.ContributionID)
+	response = shared.ReturnMessage(true, "", 200, likecount)
+
 	defer session.Close()
-	return c.JSON(http.StatusOK, likecount)
+	return c.JSON(http.StatusOK, response)
 
 }
 func (self *getData) removelike(item postData) {
@@ -306,8 +275,11 @@ func (self *getData) removeFriend(item postData) {
 
 func AddLikes(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.FAVORITESCOLLECTION)
-
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
@@ -318,8 +290,6 @@ func AddLikes(c echo.Context) (err error) {
 		fmt.Println("error:", err)
 	}
 	//os.Stdout.Write(b)
-	fmt.Println("Add likes")
-
 	var jsonBlob = []byte(b)
 	var r Res
 	error := json.Unmarshal(jsonBlob, &r)
@@ -327,14 +297,11 @@ func AddLikes(c echo.Context) (err error) {
 		fmt.Println("error:", error)
 	}
 
-	fmt.Println(res)
 	result := getData{}
 	err = db.Find(bson.M{"contributionid": res.ContributionID}).One(&result)
-
 	if result.ContributionID != "" {
 		newdata := getData{}
 		newdata = result
-
 		a := res.Likes[0].LikeUserID
 
 		item2 := likesgetproduct{LikeUserID: a}
@@ -345,20 +312,24 @@ func AddLikes(c echo.Context) (err error) {
 		notification.AddMentorLikeHistory(res.ContributionID, res.Likes[0].LikeUserID)
 		UpdateLikeCount(res.ContributionID)
 		likecount := GetLikeCount(res.ContributionID)
-		defer session.Close()
-		return c.JSON(http.StatusOK, likecount)
+		response = shared.ReturnMessage(true, "", 200, likecount)
+
+		// defer session.Close()
+		// return c.JSON(http.StatusOK, likecount)
 	} else {
 		//fmt.Println("new data add")
 		db.Insert(res)
 		notification.AddMentorLikeHistory(res.ContributionID, res.Likes[0].LikeUserID)
 		UpdateLikeCount(res.ContributionID)
 		likecount := GetLikeCount(res.ContributionID)
-		defer session.Close()
-		return c.JSON(http.StatusOK, likecount)
+		response = shared.ReturnMessage(true, "", 200, likecount)
+
+		// defer session.Close()
+		// return c.JSON(http.StatusOK, likecount)
 	}
 
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
+	return c.JSON(http.StatusOK, response)
 }
 func (box *getData) AddItem(item getProduct) []getProduct {
 	box.Comments = append(box.Comments, item)

@@ -53,6 +53,8 @@ type GetUserData struct {
 	FollowID string        `json:"followid"`
 }
 
+var response shared.Response
+
 //GET *********************************************************************************
 func GetAllData(c echo.Context) error {
 
@@ -81,58 +83,35 @@ func GetAllData(c echo.Context) error {
 }
 
 func Getfollower(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
-	results := res{}
 
+	results := res{}
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
-
-	//email :=c.FormValue("email")
 	email := res.UserID
-	//fmt.Println("/n", email)
-	//password:=c.FormValue("password")
 
-	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
-	//fmt.Println(email)
 	err = db.Find(bson.M{"userid": email}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
 	}
-	//fmt.Println(results)
-	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
-	json.Unmarshal(buff, &results)
-
 	if results.Data == nil {
-		defer session.Close()
-
-		return c.JSON(http.StatusOK, 0)
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
+	buff, _ := json.Marshal(&results)
+	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Record Foind", 200, results.Data[0])
 	defer session.Close()
-
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 

@@ -329,7 +329,17 @@ type CheckStatus struct {
 }
 
 type ErrorCheckStatus struct {
-	Status string `json:"errorstatus"`
+	Status  bool        `json:"status"`
+	Message string      `json:"message"`
+	Code    int64       `json:"code"`
+	Data    interface{} `json:"data"`
+}
+
+type Response struct {
+	Status  bool        `json:"status"`
+	Message string      `json:"message"`
+	Code    int64       `json:"code"`
+	Data    interface{} `json:"data"`
 }
 
 //connection to mongo ***************************************************************

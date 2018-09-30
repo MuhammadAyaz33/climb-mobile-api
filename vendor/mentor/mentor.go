@@ -51,32 +51,21 @@ type ParentRes struct {
 	Data []ParentpostData `json:"Data"`
 }
 
+var response shared.Response
+
 func BecomeMentorRequest(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
-
 	u := new(shared.BMentorpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.BMentorpostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("Become a Mentor Request")
-	//os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//userid: = fmt.Sprintf("%x", string(res.UserID))
-	//fmt.Println(res)
 	results := shared.BMentorres{}
 	err = db.Find(bson.M{"userid": res.UserID}).All(&results.Data)
 
@@ -87,24 +76,22 @@ func BecomeMentorRequest(c echo.Context) (err error) {
 			res.ParentStatus = 1
 		}
 		res.AdminStatus = 0
-
 		db.Insert(res)
 		notification.AddChildMentorRequestFormHistory(res.UserID)
-
+		response = shared.ReturnMessage(true, "Request Submited", 200, "")
 	} else {
-
-		defer session.Close()
-		return c.JSON(http.StatusOK, "user already submit request")
-
+		response = shared.ReturnMessage(false, "User Already Submit Request", 409, "")
 	}
-	//db.Insert(res)
 	defer session.Close()
-	return c.JSON(http.StatusOK, "request submited")
-
+	return c.JSON(http.StatusOK, response)
 }
-func GetAllMentorAdminRequest(c echo.Context) error {
 
+func GetAllMentorAdminRequest(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 	results := shared.BMentorres{}
 	err = db.Find(bson.M{"adminstatus": 0}).All(&results.Data)
@@ -113,7 +100,6 @@ func GetAllMentorAdminRequest(c echo.Context) error {
 	//  V
 	//result := getData{}
 	//err = db.Find(bson.M{"name": "two"}).One(&result)
-
 	if err != nil {
 		log.Fatal(err)
 	}

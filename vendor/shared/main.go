@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"fmt"
 	"time"
 
 	mgo "gopkg.in/mgo.v2"
@@ -20,9 +19,16 @@ func ConnectMongo(url string) (session *mgo.Session, err error) {
 		// Optional. Switch the session to a monotonic behavior.
 		//session.SetMode(mgo.Monotonic, true)
 		if err != nil {
-			fmt.Println("ERROR FOUND:")
-			panic(err)
+			return session, err
+		} else {
+			return session, nil
 		}
+	} else {
+		return session, err
 	}
-	return session, err
+}
+
+// ReturnMessage returns a response
+func ReturnMessage(status bool, message string, code int64, data interface{}) Response {
+	return Response{Status: status, Message: message, Code: code, Data: data}
 }

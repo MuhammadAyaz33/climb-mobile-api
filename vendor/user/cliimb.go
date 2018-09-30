@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/badoux/checkmail"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
@@ -46,36 +47,39 @@ type ParentRes struct {
 	Data []ParentpostData `json:"Data"`
 }
 
+var response1 shared.ErrorCheckStatus
+var response shared.Response
+
 //GET *********************************************************************************
 func GetAll(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	results := shared.Userres{}
 	err = db.Find(bson.M{}).All(&results.Data)
-
-	//  |  for one result
-	//  V
-	//result := getData{}
 	//err = db.Find(bson.M{"name": "two"}).One(&result)
-	fmt.Println(c)
 	if err != nil {
-		log.Fatal(err)
+		response = shared.ReturnMessage(false, "Token Is Empty", 400, "")
+		return c.JSON(http.StatusNotFound, response)
 	}
-	fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
-	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	response = shared.ReturnMessage(false, "Token Is Empty", 400, results)
 
+	defer session.Close()
+	return c.JSON(http.StatusOK, response)
 }
 
 //POST *********************************************************************************
 func Adduser(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	//name:=c.FormValue("Cms")
 	//fmt.Println(name)
@@ -101,52 +105,49 @@ func Adduser(c echo.Context) (err error) {
 	if error != nil {
 		fmt.Println("error:", error)
 	}
-	//fmt.Println(res)
 	results := shared.Userres{}
 	err = db.Find(bson.M{"email": res.Email}).All(&results.Data)
 
 	if results.Data == nil {
-
 		var maintoken string
 		maintoken = sendemail(res.Email, "adduser", "user")
-		//fmt.Println("this is token /n")
-		//fmt.Println(maintoken)
-		VerificationTokenSave(res.Email, maintoken, "adduser")
-		res.Status = 0
-		//parent := res.ParentStatus
-		res.ParentStatus = 0
-		res.Age = 0
-		res.ParentPhone = 0
-		hash := hashAndSalt([]byte(res.Password))
-		res.Password = hash
-		res.UserType = "user"
-		//res.MentorStatus = 0
-		db.Insert(res)
+		if maintoken == "" {
+			response = shared.ReturnMessage(false, "Token Is Empty", 400, "")
+		} else {
+			VerificationTokenSave(res.Email, maintoken, "adduser")
+			res.Status = 0
+			//parent := res.ParentStatus
+			res.ParentStatus = 0
+			res.Age = 0
+			res.ParentPhone = 0
+			hash := hashAndSalt([]byte(res.Password))
+			res.Password = hash
+			res.UserType = "user"
+			//res.MentorStatus = 0
+			db.Insert(res)
+			response = shared.ReturnMessage(true, "User Created", 201, "")
+		}
 
 	} else {
-		//fmt.Println("user available try to login")
-
-		var resultEmailStatus = shared.ErrorCheckStatus{
-			Status: "1",
-		}
-		defer session.Close()
-		return c.JSON(http.StatusOK, resultEmailStatus)
-
+		response = shared.ReturnMessage(false, "User Already Exist", 409, "")
 	}
-	//db.Insert(res)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
-
+	return c.JSON(http.StatusOK, response)
 }
 
-type Response struct {
-	Message string `json:"message"`
-	Status  bool   `json:"status"`
-}
+// type Response struct {
+// 	Message string `json:"message"`
+// 	Status  bool   `json:"status"`
+// 	Code    int64  `json:"code"`
+// 	Errors  string `json:"errors"`
+// }
 
 func AddAdmin(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	//name:=c.FormValue("Cms")
 	//fmt.Println(name)
@@ -175,17 +176,13 @@ func AddAdmin(c echo.Context) (err error) {
 	//fmt.Println(res)
 	results := shared.Userres{}
 	err = db.Find(bson.M{"email": res.Email}).All(&results.Data)
-	response := Response{}
 	if results.Data == nil {
-
 		var mySigningKey = []byte(res.Email)
 		token := jwt.New(jwt.SigningMethodHS256)
 		maintoken, _ := token.SignedString(mySigningKey)
 
 		// var maintoken string
 		//maintoken = sendemail(res.Email, "adduser", "user")
-		//fmt.Println("this is token /n")
-		//fmt.Println(maintoken)
 		VerificationTokenSave(res.Email, maintoken, "adduser")
 		res.Status = 1
 		//parent := res.ParentStatus
@@ -195,25 +192,16 @@ func AddAdmin(c echo.Context) (err error) {
 		hash := hashAndSalt([]byte(res.Password))
 		res.Password = hash
 		res.UserType = "admin"
-		res.FullName = "Cliiimb Admin"
+		res.FullName = "Cliiimb"
 		res.ProfilePicture = "https://s3.us-east-2.amazonaws.com/climbmentors/2bad8322b2af2cb0513a503b0346d881d7737337.jpg"
 		//res.MentorStatus = 0
 		db.Insert(res)
-		response.Message = "Admin Added"
-		response.Status = true
-
+		response = shared.ReturnMessage(true, "Admin Created", 200, "")
 	} else {
-		//fmt.Println("user available try to login")
-		response.Message = "User Already Exits"
-		response.Status = false
-		defer session.Close()
-		return c.JSON(http.StatusOK, response)
-
+		response = shared.ReturnMessage(false, "Admin Already Exist", 409, "")
 	}
-	//db.Insert(res)
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
-
 }
 
 //encrypt password
@@ -499,9 +487,23 @@ func UpdateParentStatus(status int, email string, check string) {
 	//err = db.Find(bson.M{"email": email}).One(&result)
 
 }
+func dbResponse() shared.Response {
+	var response shared.Response
+	response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+	return response
+}
+func EmailValidation(email string) bool {
+	err := checkmail.ValidateFormat(email)
+	if err != nil {
+		return false
+	}
+	return true
+}
 func Login(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil {
+		response = dbResponse()
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	results := shared.Userres{}
 
@@ -511,56 +513,26 @@ func Login(c echo.Context) error {
 	res := shared.UserpostData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("login ")
-	//	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	email := res.Email
-
 	password := res.Password
-
-	err = db.Find(bson.M{"email": email}).All(&results.Data)
-
-	if err != nil {
-		//log.Fatal(err)
-	}
-	//fmt.Println(results)
-	mentorstatus := GetMentorRequest(email)
-	fmt.Println("status changed : ", mentorstatus)
+	db.Find(bson.M{"email": email}).All(&results.Data)
 	if results.Data == nil {
-		var Status = shared.ErrorCheckStatus{
-			Status: "0",
-		}
-		defer session.Close()
-		return c.JSON(http.StatusOK, Status)
+		response = shared.ReturnMessage(false, "Incorrect Username", 404, "")
 	} else {
+		mentorstatus := GetMentorRequest(email)
 		hash := results.Data[0].Password
 		check := comparePasswords(hash, []byte(password))
 		if check == true {
 			results.Data[0].MentorStatus = mentorstatus
 			buff, _ := json.Marshal(&results)
-			//fmt.Println(string(buff))
-			defer session.Close()
 			json.Unmarshal(buff, &results)
-			return c.JSON(http.StatusOK, &results)
+			response = shared.ReturnMessage(true, "Logged In", 201, results.Data[0])
 		} else {
-			var Status = shared.ErrorCheckStatus{
-				Status: "0",
-			}
-			defer session.Close()
-			return c.JSON(http.StatusOK, Status)
+			response = shared.ReturnMessage(false, "Incorrect Password", 404, "")
 		}
 	}
-	return c.JSON(http.StatusOK, err)
+	defer session.Close()
+	return c.JSON(http.StatusOK, response)
 }
 func GetMentorRequest(useremail string) int {
 
@@ -589,6 +561,10 @@ func GetMentorRequest(useremail string) int {
 }
 func EditProfile(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	//name:=c.FormValue("Cms")
 	//fmt.Println(name)
@@ -618,6 +594,10 @@ func EditProfile(c echo.Context) (err error) {
 	result := shared.UsergetData{}
 	fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
+	if err != nil {
+		response = shared.ReturnMessage(false, "Invalid Email", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	newdata := shared.UsergetData{}
 	newdata = result
 	if res.FullName != "" {
@@ -629,13 +609,21 @@ func EditProfile(c echo.Context) (err error) {
 	if res.Password != "" {
 		newdata.Password = res.Password
 	}
-
-	db.Update(result, newdata)
+	err = db.Update(result, newdata)
+	if err != nil {
+		response = shared.ReturnMessage(false, "Profile Not Updated", 304, "")
+	} else {
+		response = shared.ReturnMessage(true, "Profile Updated", 200, newdata)
+	}
 	defer session.Close()
-	return c.JSON(http.StatusOK, &newdata)
+	return c.JSON(http.StatusOK, response)
 }
 func UpdateProfile(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 
 	u := new(shared.UserUpdateData)
@@ -740,8 +728,13 @@ func UpdateProfile(c echo.Context) (err error) {
 	err = db.Find(bson.M{"email": res.Email}).One(&result1)
 	mentorstatus := GetMentorRequest(res.Email)
 	result1.MentorStatus = mentorstatus
+	if err != nil {
+		response = shared.ReturnMessage(false, "User Not Found", 404, "")
+	} else {
+		response = shared.ReturnMessage(true, "Profile Updated", 200, result1)
+	}
 	defer session.Close()
-	return c.JSON(http.StatusOK, result1)
+	return c.JSON(http.StatusOK, response)
 }
 func UpdateContributionProfilePic(picture string, email string) {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -1752,21 +1745,22 @@ func trimQuotes(s string) string {
 }
 func Updateaboutme(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	//name:=c.FormValue("Cms")
-	//fmt.Println(name)
 	//name =c.FormValue("name")
 	u := new(shared.UserUpdateData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.UserUpdateData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
 	b, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
 	os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
@@ -1775,32 +1769,34 @@ func Updateaboutme(c echo.Context) (err error) {
 	if error != nil {
 		fmt.Println("error:", error)
 	}
-	//fmt.Println(res)
-	//fmt.Println(res.Data)
-	//fmt.Println(res)
 	result := shared.UserUpdateData{}
-	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
 	newdata := shared.UserUpdateData{}
 	newdata = result
 	fmt.Println(res.AboutMe)
 	newdata.AboutMe = res.AboutMe
-	db.Update(result, newdata)
+	err = db.Update(result, newdata)
 
 	//fmt.Println(string(buff))
 	result1 := shared.UsergetData{}
 	err = db.Find(bson.M{"email": res.Email}).One(&result1)
 	mentorstatus := GetMentorRequest(res.Email)
 	result1.MentorStatus = mentorstatus
+	if err != nil {
+		response = shared.ReturnMessage(false, "Info Not Updated", 304, "")
+	} else {
+		response = shared.ReturnMessage(true, "Profile Updated", 201, result1)
+	}
 
 	defer session.Close()
-
-	return c.JSON(http.StatusOK, &result1)
+	return c.JSON(http.StatusOK, response)
 }
 func ViewProfile(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
-
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	results := shared.Userinfores{}
 
@@ -1835,21 +1831,22 @@ func ViewProfile(c echo.Context) error {
 	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
 
 	err = db.Find(bson.M{"email": email}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Rescord Not Found", 304, "")
+	} else {
+		buff, _ := json.Marshal(&results)
+		json.Unmarshal(buff, &results)
+		response = shared.ReturnMessage(true, "Profile Data", 201, results)
 	}
-	//fmt.Println(results)
-	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
-	json.Unmarshal(buff, &results)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 }
 func ViewProfileById(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	results := shared.Userinfores{}
 
@@ -1872,11 +1869,8 @@ func ViewProfileById(c echo.Context) error {
 	if error != nil {
 		fmt.Println("error:", error)
 	}
-	//fmt.Println(res.Email)
-
 	//email := c.FormValue("id")
 	email := res.ID
-	//fmt.Println(email)
 	//password:=c.FormValue("password")
 	password := res.Password
 	fmt.Println(password)
@@ -1884,20 +1878,17 @@ func ViewProfileById(c echo.Context) error {
 	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
 
 	err = db.Find(bson.M{"_id": email}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+	} else {
+		mentorstatus := GetMentorRequest(results.Data[0].Email)
+		results.Data[0].MentorStatus = mentorstatus
+		buff, _ := json.Marshal(&results)
+		json.Unmarshal(buff, &results)
+		response = shared.ReturnMessage(true, "Profile Data", 201, results.Data[0])
 	}
-	//fmt.Println(results)
-	mentorstatus := GetMentorRequest(results.Data[0].Email)
-
-	results.Data[0].MentorStatus = mentorstatus
-	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
-	json.Unmarshal(buff, &results)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 }
 func GetParentKids(c echo.Context) error {
 

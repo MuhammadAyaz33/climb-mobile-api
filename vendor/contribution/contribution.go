@@ -18,31 +18,30 @@ type UserRequest struct {
 	userRequest string `json:"userRequest"`
 }
 
-func ContributionGetAll(c echo.Context) error {
+var response shared.Response
 
+func ContributionGetAll(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
 	err = db.Find(bson.M{"contributionstatus": "Publish"}).All(&results.Data)
-
-	//  |  for one result
-	//  V
-	//result := getData{}
-	//err = db.Find(bson.M{"name": "two"}).One(&result)
-	fmt.Println("Get All Contribution")
 	if err != nil {
-
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	if results.Data == nil {
-		return c.JSON(http.StatusOK, 0)
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
-	//fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Record Found", 200, results.Data)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 func GetAllRejectedContribution(c echo.Context) error {
@@ -75,56 +74,43 @@ func GetAllRejectedContribution(c echo.Context) error {
 func GetAllEvent(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
 	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).All(&results.Data)
-
-	//  |  for one result
-	//  V
-	//result := getData{}
-	//err = db.Find(bson.M{"name": "two"}).One(&result)
-	fmt.Println("Get All Event")
 	if err != nil {
-
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	if results.Data == nil {
-		return c.JSON(http.StatusOK, 0)
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
-	//fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Record Found", 200, results.Data)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 
 //POST *********************************************************************************
 func Addcontribution(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
-
 	u := new(shared.ContributionPostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.ContributionPostData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("Add Contribution")
-	//os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	audiopath := res.AudioPath
 	converimage := res.Coverpage
 	profilepicture := res.UserProfilePicture
@@ -144,7 +130,6 @@ func Addcontribution(c echo.Context) (err error) {
 		} else {
 			res.Coverpage = staticpath + converimage
 		}
-		//fmt.Println("cover page  ******", res.Coverpage)
 	}
 
 	if profilepicture != "" {
@@ -171,9 +156,10 @@ func Addcontribution(c echo.Context) (err error) {
 	}
 	if res.ID == "" {
 		db.Insert(res)
-	} else {
+		response = shared.ReturnMessage(true, "Contribution Added", 200, "")
+
+	} else if res.ID != "" {
 		result := shared.ContributionPostData{}
-		//fmt.Println("%T \n", result)
 		err = db.Find(bson.M{"_id": res.ID}).One(&result)
 		newdata := shared.ContributionPostData{}
 		newdata = result
@@ -216,11 +202,13 @@ func Addcontribution(c echo.Context) (err error) {
 			newdata.ContributionText = res.ContributionText
 		}
 		db.Update(result, newdata)
+		response = shared.ReturnMessage(true, "Contribution updated", 200, "")
+	} else {
+		response = shared.ReturnMessage(false, "Process Faild", 404, "")
 	}
 
-	//fmt.Println(db)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
+	return c.JSON(http.StatusOK, response)
 
 }
 
@@ -591,46 +579,30 @@ func UpdateAdminStatus(c echo.Context) (err error) {
 }
 func AddView(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
-
 	u := new(shared.ContributionPostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.ContributionPostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res)
 	result := shared.ContributionData{}
-	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"_id": res.ID}).One(&result)
-	//defer session.Close()
 	if result.UserID != "" {
-		//fmt.Println("contribution exist")
 		newdata := shared.ContributionData{}
 		newdata = result
 		session1, err1 := shared.ConnectMongo(shared.DBURL)
 		db1 := session1.DB(shared.DBName).C(shared.VIEWCOLLECTION)
 		if err1 != nil {
-			fmt.Println("error:", error)
+			fmt.Println("error:", err1)
 		}
 
 		result1 := shared.ViewgetData{}
-
 		err = db1.Find(bson.M{"contributionid": res.ID.Hex(), "userid": res.UserID}).One(&result1)
-		fmt.Println(result1)
 		if result1.ContributionID == "" {
 
 			view := newdata.ViewCount
@@ -642,15 +614,17 @@ func AddView(c echo.Context) (err error) {
 			res1.ContributionID = res.ID.Hex()
 			res1.UserID = res.UserID
 			db1.Insert(res1)
+			response = shared.ReturnMessage(true, "", 200, "")
 			defer session.Close()
+			return c.JSON(http.StatusOK, response)
 
-			return c.JSON(http.StatusOK, 1)
 		}
-
 	}
-
-	return c.JSON(http.StatusOK, 0)
+	response = shared.ReturnMessage(false, "View Not Added", 400, "")
+	defer session.Close()
+	return c.JSON(http.StatusOK, response)
 }
+
 func RemoveOneContribution(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
