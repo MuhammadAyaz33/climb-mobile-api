@@ -28,7 +28,13 @@ func ContributionGetAll(c echo.Context) error {
 	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributionstatus": "Publish"}).All(&results.Data)
+	err = db.Find(bson.M{"contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
+
+	//  |  for one result
+	//  V
+	//result := getData{}
+	//err = db.Find(bson.M{"name": "two"}).One(&result)
+	fmt.Println("Get All Contribution")
 	if err != nil {
 		response = shared.ReturnMessage(false, "Server error", 501, "")
 		return c.JSON(http.StatusOK, response)
@@ -49,7 +55,7 @@ func GetAllRejectedContribution(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributionstatus": "Reject"}).All(&results.Data)
+	err = db.Find(bson.M{"contributionstatus": "Reject"}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
@@ -80,7 +86,13 @@ func GetAllEvent(c echo.Context) error {
 	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).All(&results.Data)
+	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
+
+	//  |  for one result
+	//  V
+	//result := getData{}
+	//err = db.Find(bson.M{"name": "two"}).One(&result)
+	fmt.Println("Get All Event")
 	if err != nil {
 		response = shared.ReturnMessage(false, "Server error", 501, "")
 		return c.JSON(http.StatusOK, response)
@@ -151,7 +163,7 @@ func Addcontribution(c echo.Context) (err error) {
 	res.Likes = 0
 	//date := currentdate.Format("2006-01-02 3:4:5 PM")
 	res.ContributionPostDate = currentdate
-	if res.UserFullName == "Cliiimb Article" {
+	if res.UserFullName == "Cliiimb" {
 		res.AdminStatus = 1
 	}
 	if res.ID == "" {
@@ -243,7 +255,7 @@ func SearchContribution(c echo.Context) error {
 	email := res.UserEmail
 
 	fmt.Println(email)
-	err = db.Find(bson.M{"useremail": email, "contributiontype": "contribution"}).All(&results.Data)
+	err = db.Find(bson.M{"useremail": email, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -293,7 +305,7 @@ func SearchEventByEmail(c echo.Context) error {
 	email := res.UserEmail
 
 	fmt.Println(email)
-	err = db.Find(bson.M{"useremail": email, "contributiontype": "event"}).All(&results.Data)
+	err = db.Find(bson.M{"useremail": email, "contributiontype": "event"}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -342,7 +354,7 @@ func SearchContributionByCategory(c echo.Context) error {
 	//email :=c.FormValue("email")
 	category := res.MainCategory
 
-	err = db.Find(bson.M{"maincategory": category}).All(&results.Data)
+	err = db.Find(bson.M{"maincategory": category}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -387,7 +399,7 @@ func SearchContributionBySubCategory(c echo.Context) error {
 	//email :=c.FormValue("email")
 	subcategory := res.SubCategories
 
-	err = db.Find(bson.M{"subcategories": subcategory}).All(&results.Data)
+	err = db.Find(bson.M{"subcategories": subcategory}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
@@ -467,6 +479,9 @@ func Editcontribution(c echo.Context) (err error) {
 	}
 	if res.ContributionStatus != "" {
 		newdata.ContributionStatus = res.ContributionStatus
+	}
+	if res.ContributionText != "" {
+		newdata.ContributionText = res.ContributionText
 	}
 	db.Update(result, newdata)
 	defer session.Close()
@@ -780,7 +795,7 @@ func SearchEvent(c echo.Context) (err error) {
 	query["contributiontype"] = "event"
 	query["adminstatus"] = 1
 
-	err = db.Find(query).All(&result.Data)
+	err = db.Find(query).Sort("-contributionpostdate").All(&result.Data)
 	//err = db.Find(bson.M{"maincategory": res.MainCategory, "date": res.Date, "location": bson.RegEx{Pattern: res.Location, Options: "i"}, "contributiontype": "event"}).All(&result.Data)
 	//db.Update(result, res)
 	defer session.Close()
@@ -816,20 +831,20 @@ func SearchSubContribution(c echo.Context) (err error) {
 	resultmaincategory := shared.Contributionres{}
 	//fmt.Println("%T \n", result)
 	//err = db.Find(bson.M{"$or": []bson.M{bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "sim"}}, bson.M{"tags": bson.M{"tag": bson.RegEx{"^.*" + res.SubCategories + "", "sm"}}}, bson.M{"maincategory": res.SubCategories}}}).All(&resultsubcategory.Data)
-	err = db.Find(bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "im"}, "contributiontype": "contribution"}).All(&resultsubcategory.Data)
+	err = db.Find(bson.M{"subcategories": bson.RegEx{"^.*" + res.SubCategories + "", "im"}, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&resultsubcategory.Data)
 	if resultsubcategory.Data != nil {
 		for x := range resultsubcategory.Data {
 			data.Data = append(data.Data, resultsubcategory.Data[x])
 		}
 	}
 
-	err = db.Find(bson.M{"tags": bson.M{"tag": strings.ToLower(res.SubCategories)}, "contributiontype": "contribution"}).All(&resulttag.Data)
+	err = db.Find(bson.M{"tags": bson.M{"tag": strings.ToLower(res.SubCategories)}, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&resulttag.Data)
 	if resulttag.Data != nil {
 		for x := range resulttag.Data {
 			data.Data = append(data.Data, resulttag.Data[x])
 		}
 	}
-	err = db.Find(bson.M{"maincategory": bson.RegEx{"^.*" + res.SubCategories + "", "i"}, "contributiontype": "contribution"}).All(&resultmaincategory.Data)
+	err = db.Find(bson.M{"maincategory": bson.RegEx{"^.*" + res.SubCategories + "", "i"}, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&resultmaincategory.Data)
 	if resultmaincategory.Data != nil {
 		for x := range resultmaincategory.Data {
 			data.Data = append(data.Data, resultmaincategory.Data[x])
