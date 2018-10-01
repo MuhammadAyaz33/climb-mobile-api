@@ -34,7 +34,6 @@ func ContributionGetAll(c echo.Context) error {
 	//  V
 	//result := getData{}
 	//err = db.Find(bson.M{"name": "two"}).One(&result)
-	fmt.Println("Get All Contribution")
 	if err != nil {
 		response = shared.ReturnMessage(false, "Server error", 501, "")
 		return c.JSON(http.StatusOK, response)
@@ -121,7 +120,6 @@ func Addcontribution(c echo.Context) (err error) {
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.ContributionPostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
 	audiopath := res.AudioPath
 	converimage := res.Coverpage
@@ -169,7 +167,6 @@ func Addcontribution(c echo.Context) (err error) {
 	if res.ID == "" {
 		db.Insert(res)
 		response = shared.ReturnMessage(true, "Contribution Added", 200, "")
-
 	} else if res.ID != "" {
 		result := shared.ContributionPostData{}
 		err = db.Find(bson.M{"_id": res.ID}).One(&result)
@@ -184,7 +181,6 @@ func Addcontribution(c echo.Context) (err error) {
 		if len(res.Website) > 0 {
 			newdata.Website = res.Website
 		}
-		//fmt.Println("conver page ******************* /n", res.Coverpage)
 		if res.Coverpage != "" {
 			newdata.Coverpage = res.Coverpage
 		}
@@ -216,17 +212,18 @@ func Addcontribution(c echo.Context) (err error) {
 		db.Update(result, newdata)
 		response = shared.ReturnMessage(true, "Contribution updated", 200, "")
 	} else {
-		response = shared.ReturnMessage(false, "Process Faild", 404, "")
+		response = shared.ReturnMessage(false, "Process Faild", 401, "")
 	}
-
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
-
 }
 
 func SearchContribution(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
 
@@ -234,44 +231,23 @@ func SearchContribution(c echo.Context) error {
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.ContributionPostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("Search contribution by email")
-	// os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
-
-	//email :=c.FormValue("email")
 	email := res.UserEmail
-
-	fmt.Println(email)
 	err = db.Find(bson.M{"useremail": email, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&results.Data)
-
 	if err != nil {
 		//log.Fatal(err)
 	}
-	//fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
-	var a [0]string
 	if results.Data == nil {
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, &a)
+		return c.JSON(http.StatusOK, response)
 	}
+	response = shared.ReturnMessage(true, "Record found", 200, results.Data)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 func SearchEventByEmail(c echo.Context) error {
@@ -489,34 +465,26 @@ func Editcontribution(c echo.Context) (err error) {
 }
 func SearchContributionById(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
-
 	u := new(shared.ContributionPostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.ContributionPostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("search contribution by id")
-	//os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res)
 	result := shared.ContributionData{}
-	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"_id": res.ID}).One(&result)
-	//db.Update(result, res)
+	if err != nil {
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
+	response = shared.ReturnMessage(true, "Record found", 200, result)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &result)
+	return c.JSON(http.StatusOK, response)
 }
 func UpdateContributionStatus(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -677,8 +645,11 @@ func RemoveOneContribution(c echo.Context) (err error) {
 
 }
 func RemainingContributionCheck(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
 
@@ -686,35 +657,20 @@ func RemainingContributionCheck(c echo.Context) (err error) {
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.ContributionPostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
 	err = db.Find(bson.M{"userid": res.UserID, "adminstatus": 1}).All(&results.Data)
-
-	// if err != nil {
-	// 	//log.Fatal(err)
-	// }
-	userContributionCount := GetMentorRequest(res.UserID)
-
-	if results.Data == nil {
-		defer session.Close()
-		return c.JSON(http.StatusOK, &userContributionCount)
+	if err != nil {
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+		return c.JSON(http.StatusNotFound, response)
 	}
+	userContributionCount := GetMentorRequest(res.UserID)
+	// if results.Data == nil {
+	// 	response = shared.ReturnMessage(false, "Record Not Found", 404, userContributionCount)
+	// 	defer session.Close()
+	// 	return c.JSON(http.StatusOK, response)
+	// }
 	currentdate := time.Now().UTC()
-
 	currentyear, currentmonth, _ := currentdate.Date()
-	//fmt.Println(len(results.Data))
 	contributionCount := 0
 	for x := range results.Data {
 		contributiondate := results.Data[x].ContributionPostDate
@@ -725,15 +681,10 @@ func RemainingContributionCheck(c echo.Context) (err error) {
 		}
 
 	}
-	fmt.Println("total contribution count : ", contributionCount)
-
-	fmt.Println("user contribution count: ", userContributionCount)
-
 	remainingContribuiton := userContributionCount - contributionCount
-	fmt.Println("remaing contribution : ", remainingContribuiton)
-
+	response = shared.ReturnMessage(true, "Contribution Count", 200, remainingContribuiton)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &remainingContribuiton)
+	return c.JSON(http.StatusOK, response)
 }
 func GetMentorRequest(userid string) int {
 

@@ -113,10 +113,15 @@ type ContributionRes struct {
 	Data []ContributionPostData `json:"Data"`
 }
 
+var response shared.Response
+
 //GET *********************************************************************************
 func GetAllUserPreferences(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERPREFERENCECOLLECTION)
 	results := res{}
 	err = db.Find(bson.M{}).All(&results.Data)
@@ -129,158 +134,114 @@ func GetAllUserPreferences(c echo.Context) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(results)
+	if len(results.Data) < 1 {
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	buff, _ := json.Marshal(&results)
-	fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "User Preferences Updated", 200, results.Data[0])
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 func GetUserPrefences(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERPREFERENCECOLLECTION)
 	results := res{}
-
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
-
 	//email :=c.FormValue("email")
 	email := res.UserID
-
 	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
-
 	err = db.Find(bson.M{"userid": email}).All(&results.Data)
-
 	if err != nil {
 		//log.Fatal(err)
 	}
-	//fmt.Println(results)
+	if len(results.Data) < 1 {
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "User Preferences", 200, results.Data[0])
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 
 //POST *********************************************************************************
 func AddUserPreferences(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERPREFERENCECOLLECTION)
 
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
+	if len(res.UserPreferences) < 1 {
+		response = shared.ReturnMessage(false, "Preferences not be empty", 400, "")
+		return c.JSON(http.StatusOK, response)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	fmt.Println(res)
 	result := getData{}
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
-
 	if result.UserID == "" {
-		fmt.Println("no data added")
 		db.Insert(res)
+		response = shared.ReturnMessage(true, "User Preferences Added", 200, "")
 	} else {
-		fmt.Println("data update")
 		newdata := getData{}
 		newdata = result
-
 		a := res.UserPreferences[0].SubCategory
-
 		item1 := getProduct{SubCategory: a}
-
 		newdata.AddItem(item1)
 		db.Update(result, res)
+		response = shared.ReturnMessage(true, "User Preferences Updated", 200, "")
+
 	}
 	//db.Insert(res)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
+	return c.JSON(http.StatusOK, response)
 
 }
 
 func RemoveUserPreferences(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERPREFERENCECOLLECTION)
-	//name:=c.FormValue("Cms")
-	//fmt.Println(name)
-	//name =c.FormValue("name")
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-
-	fmt.Println(res)
 	result := getData{}
 
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
-
 	result.removeFriend(res)
-
 	result1 := getData{}
-
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result1)
 	if err != nil {
-		//fmt.Println(err)
-		defer session.Close()
-		return c.JSON(http.StatusOK, "data not found")
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	db.Update(result1, result)
-	//fmt.Println(check)
+	response = shared.ReturnMessage(true, "User preferences removed", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, "successfull update")
-
+	return c.JSON(http.StatusOK, response)
 }
 func (self *getData) removeFriend(item postData) {
 	for i := range self.UserPreferences {
@@ -341,82 +302,42 @@ func (box *getData) AddItem(item getProduct) []getProduct {
 }
 
 func UserPreferenceSuggestionContribution(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
-	//results := res{}
-
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(db)
-
-	//email :=c.FormValue("email")
-	//email := res.UserID
 	var subcat = []postProduct{}
 	subcat = res.UserPreferences
-	//fmt.Println(subcat[0].SubCategory)
-
 	newdata := Contributionres{}
-	// newdata1 := ContributionData{}
 	if subcat == nil {
-		fmt.Println("no data")
+		response = shared.ReturnMessage(false, "SubCategory not be empty", 409, "")
 	} else {
 		for i := range subcat {
-
 			exception.Try(func() {
 				results := Contributionres{}
-				fmt.Println(subcat[i].SubCategory)
 				err = db.Find(bson.M{"subcategories": subcat[i].SubCategory, "viewcount": bson.M{"$gt": 1}}).All(&results.Data)
 				if results.Data != nil {
-					//fmt.Println(results)
 					for x := range results.Data {
-						//fmt.Println(len(results.Data))
-						//fmt.Println(x)
 						newdata.AddItem11(results.Data[x])
 					}
-
+					response = shared.ReturnMessage(true, "User preferences added", 200, newdata.Data)
+				} else {
+					response = shared.ReturnMessage(false, "Record not found", 404, "")
 				}
 			}).CatchAll(func(e interface{}) {
 				fmt.Println("no data")
-
-			}).Finally(func() {
-
-			})
-
+			}).Finally(func() {})
 		}
 	}
-	//sub := subcat[0].SubCategory
-
-	//newdata.AddItem11(results.Data)
-
-	if err != nil {
-		//log.Fatal(err)
-	}
-	//fmt.Println(results)
-	//buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
-	//json.Unmarshal(buff, &results)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &newdata)
-
+	return c.JSON(http.StatusOK, response)
 }
 func (box *Contributionres) AddItem11(item ContributionData) []ContributionData {
 	box.Data = append(box.Data, item)

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"shared"
 	"user"
 
@@ -179,6 +178,8 @@ type Res struct {
 type GetUserData struct {
 	UserID string `json:"userid"`
 }
+
+var response shared.Response
 
 // user history
 func AddMentorFollwerHistory(userid string, followerid string) {
@@ -410,7 +411,6 @@ func ContributionInfo(contributionid bson.ObjectId) shared.ContributionData {
 	return results
 }
 func MentorContributionInfo(mentorid string) shared.Contributionres {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
@@ -433,41 +433,29 @@ func MentorContributionInfo(mentorid string) shared.Contributionres {
 }
 
 func GetUserMentorHistory(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
 	results := res{}
-	//newdata := getData{}
 
 	u := new(GetUserData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := GetUserData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 
 	err = db.Find(bson.M{"userid": res.UserID}).All(&results.Data)
 	if err != nil {
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, &results)
+		return c.JSON(http.StatusOK, response)
 	}
-	//ParentInfo("mohd.kasimnazesser@gmail.com")
+	response = shared.ReturnMessage(true, "Record found", 404, results.Data)
 	defer session.Close()
-
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 
@@ -925,46 +913,33 @@ func AddParentMentorRequestReject(Userid string) {
 	defer session.Close()
 }
 func ChangeNotificationStatus(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
 	results := MentoryHistorygetData{}
-	//newdata := getData{}
 
 	u := new(GetUserData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := GetUserData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("Update New Notification Status")
-	//os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 
 	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
 	if err != nil {
-		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		response = shared.ReturnMessage(false, "Status Not Found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	newdata := MentoryHistorygetData{}
 	newdata = results
 	newdata.NewNotification = false
 	db.Update(results, newdata)
 	//ParentInfo("mohd.kasimnazesser@gmail.com")
+	response = shared.ReturnMessage(true, "Status Found", 200, "")
 	defer session.Close()
-
-	return c.JSON(http.StatusOK, 1)
-
+	return c.JSON(http.StatusOK, response)
 }
 
 func AddChildMentorRequestFormHistory(Userid string) {

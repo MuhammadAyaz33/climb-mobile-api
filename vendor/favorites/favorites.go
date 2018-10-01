@@ -128,53 +128,29 @@ func AddComments(c echo.Context) (err error) {
 	}
 	res := postData{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	result := getData{}
-	fmt.Println(res)
 	err = db.Find(bson.M{"contributionid": res.ContributionID}).One(&result)
 	mid := xid.New()
 	if result.ContributionID == "" {
-		//fmt.Println("new data added")
 		res.Comments[0].CommentID = mid.String()
 		db.Insert(res)
 		notification.AddMentorcommentHistory(res.ContributionID, res.Comments[0].CommentUserID)
-		defer session.Close()
-		return c.JSON(http.StatusOK, "comment added")
+		response = shared.ReturnMessage(true, "Comment added", 200, "")
 	} else {
-		//fmt.Println("data update")
-
 		newdata := getData{}
 		newdata = result
 
 		a := res.Comments[0].Comment
-
 		item1 := getProduct{CommentID: mid.String(), CommentUserID: res.Comments[0].CommentUserID, Comment: a}
-
 		newdata.AddItem(item1)
 		db.Update(result, newdata)
 		notification.AddMentorcommentHistory(res.ContributionID, res.Comments[0].CommentUserID)
-		defer session.Close()
-		return c.JSON(http.StatusOK, "comment added")
+		response = shared.ReturnMessage(true, "Comment Updated", 200, "")
 	}
-
-	//db.Insert(res)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
-
+	return c.JSON(http.StatusOK, response)
 }
-
-//
 
 func UnLike(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -220,6 +196,10 @@ func (self *getData) removelike(item postData) {
 }
 func DeleteComment(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.FAVORITESCOLLECTION)
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
@@ -252,14 +232,14 @@ func DeleteComment(c echo.Context) (err error) {
 
 	err = db.Find(bson.M{"contributionid": res.ContributionID}).One(&result1)
 	if err != nil {
-		//fmt.Println(err)
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, "data not found")
+		return c.JSON(http.StatusOK, response)
 	}
 	db.Update(result1, result)
-	//fmt.Println(check)
+	response = shared.ReturnMessage(true, "successfull deleted", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, "successfull deleted")
+	return c.JSON(http.StatusOK, response)
 
 }
 func (self *getData) removeFriend(item postData) {

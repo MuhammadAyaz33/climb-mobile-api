@@ -18,8 +18,6 @@ import (
 	"crypto/sha1"
 
 	"github.com/gin-gonic/gin"
-	"github.com/itsjamie/gin-cors"
-	"github.com/minio/minio-go"
 )
 
 const maxFileSize = 3048576 // 1MB

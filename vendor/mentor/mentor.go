@@ -216,31 +216,22 @@ func UpdateParentStatus(c echo.Context) error {
 }
 func UpdateRejectParentMentorStatus(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
-
 	u := new(shared.BMentorpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.BMentorpostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("update parent reject status of mentor request")
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	result := shared.BMentorpostData{}
-
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		return c.JSON(http.StatusNotFound, response)
 		//results.Data = append(results.Data, kidrequest)
 	}
 	// res.ContributionStatus = 1
@@ -250,9 +241,9 @@ func UpdateRejectParentMentorStatus(c echo.Context) error {
 	db.Update(result, newdata)
 	notification.AddParentMentorRequestReject(result.UserID)
 
+	response = shared.ReturnMessage(true, "Record Updated", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, 1)
-
+	return c.JSON(http.StatusOK, response)
 }
 
 func UpdateAdminStatus(c echo.Context) error {
@@ -296,31 +287,23 @@ func UpdateAdminStatus(c echo.Context) error {
 }
 func UpdateAdminRejectStatus(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
-
 	u := new(shared.BMentorpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.BMentorpostData{}
-	//fmt.Println("this is C:", postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("update admin reject status of mentor request")
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	result := shared.BMentorpostData{}
 
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		return c.JSON(http.StatusNotFound, response)
 		//results.Data = append(results.Data, kidrequest)
 	}
 	// res.ContributionStatus = 1
@@ -329,9 +312,9 @@ func UpdateAdminRejectStatus(c echo.Context) error {
 	newdata.AdminStatus = 2
 	db.Update(result, newdata)
 	notification.AddAdminMentorRequestReject(result.UserID)
-
+	response = shared.ReturnMessage(true, "Record Updated", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, 1)
+	return c.JSON(http.StatusOK, response)
 }
 func GetMentorRequest(c echo.Context) error {
 

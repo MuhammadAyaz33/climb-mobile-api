@@ -3,7 +3,6 @@ package following
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"notification"
 	"os"
@@ -57,29 +56,23 @@ var response shared.Response
 
 //GET *********************************************************************************
 func GetAllData(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
 	results := res{}
 	err = db.Find(bson.M{}).All(&results.Data)
-
-	//  |  for one result
-	//  V
-	//result := getData{}
-	//err = db.Find(bson.M{"name": "two"}).One(&result)
-
 	if err != nil {
-		log.Fatal(err)
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+		return c.JSON(http.StatusOK, &results)
 	}
-	fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Record Found", 200, results.Data)
 	defer session.Close()
-
-	return c.JSON(http.StatusOK, &results)
-
+	return c.JSON(http.StatusOK, response)
 }
 
 func Getfollower(c echo.Context) error {
@@ -117,6 +110,10 @@ func Getfollower(c echo.Context) error {
 
 func GetfollowerByEmail(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	results := shared.UsergetData{}
 	follower := res{}
@@ -125,42 +122,24 @@ func GetfollowerByEmail(c echo.Context) error {
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.UserpostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 
 	email := res.Email
 
 	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
 
 	err = db.Find(bson.M{"email": email}).One(&results)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Record Not Found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	hexid := fmt.Sprintf("%x", string(results.ID))
-	fmt.Println(hexid)
 	follower = GetfollowerById(hexid)
-	//fmt.Println(results)
 	buff, _ := json.Marshal(&follower)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &follower)
+	response = shared.ReturnMessage(true, "Record Found", 200, follower)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &follower)
-
+	return c.JSON(http.StatusOK, response)
 }
 func GetfollowerById(userid string) res {
 
@@ -187,40 +166,23 @@ func GetfollowerById(userid string) res {
 
 //POST *********************************************************************************
 func AddMentor(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
-	//name:=c.FormValue("Cms")
-	//fmt.Println(name)
-	//name =c.FormValue("name")
-	//fmt.Println(name)
-	//u:=new (postData)
+
 	u := new(GetUserData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := GetUserData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	result := getData{}
-	//fmt.Println(res)
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	userfollower := postData{}
 	fid := xid.New()
 	if result.UserID == "" {
-		//fmt.Println("ni match hova add kr do")
 		userfollower.UserID = res.UserID
 		// userfollower.Follower[0].Userfollowerid = res.Userfollowerid
 		// userfollower.Follower[0].ParentStatus = 0
@@ -237,21 +199,22 @@ func AddMentor(c echo.Context) (err error) {
 			msgstatus = 1
 			notification.AddMentorFollwerHistory(res.Follower[0].Userfollowerid, res.UserID)
 		}
-
 		item1 := postProduct{Followid: fid.String(), Userfollowerid: res.Follower[0].Userfollowerid, ParentStatus: agestatus, MessageStatus: msgstatus}
-
 		userfollower.AddItem11(item1)
-		db.Insert(userfollower)
+		err = db.Insert(userfollower)
+		if err != nil {
+			response = shared.ReturnMessage(false, "Record not added", 400, "")
+			return c.JSON(http.StatusOK, response)
+		}
+		response = shared.ReturnMessage(true, "Record added", 200, "")
 	} else {
-		//fmt.Println("match ho geya hai update kro")
 		for x := range result.Follower {
 			if result.Follower[x].Userfollowerid == res.Follower[0].Userfollowerid {
-				//db.Insert(res)
 				defer session.Close()
-				return c.JSON(http.StatusOK, "user already follow")
+				response = shared.ReturnMessage(false, "User already follow", 409, "")
+				return c.JSON(http.StatusOK, response)
 			}
 		}
-
 		newdata := getData{}
 		newdata = result
 
@@ -268,17 +231,17 @@ func AddMentor(c echo.Context) (err error) {
 			msgstatus = 1
 			notification.AddMentorFollwerHistory(res.Follower[0].Userfollowerid, res.UserID)
 		}
-
 		item1 := getProduct{Followid: fid.String(), Userfollowerid: a, ParentStatus: agestatus, MessageStatus: msgstatus}
-
 		newdata.AddItem(item1)
-		db.Update(result, newdata)
+		err = db.Update(result, newdata)
+		if err != nil {
+			response = shared.ReturnMessage(false, "Record not updated", 400, "")
+			return c.JSON(http.StatusOK, response)
+		}
+		response = shared.ReturnMessage(true, "Record updated", 200, "")
 	}
-
-	//db.Insert(res)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
-
+	return c.JSON(http.StatusOK, response)
 }
 
 //
@@ -289,52 +252,38 @@ func (box *postData) AddItem11(item postProduct) []postProduct {
 
 func Unfollow(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
-	//name:=c.FormValue("Cms")
-	//fmt.Println(name)
-	//name =c.FormValue("name")
+
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-
-	fmt.Println(res)
 	result := getData{}
-
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
-
 	result.removeFriend(res)
 
 	result1 := getData{}
-
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result1)
-
-	db.Update(result1, result)
+	err = db.Update(result1, result)
+	if err != nil {
+		response = shared.ReturnMessage(false, "Can't unfollow, error", 400, "")
+		return c.JSON(http.StatusOK, response)
+	}
+	response = shared.ReturnMessage(true, "Unfollow successful", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
+	return c.JSON(http.StatusOK, response)
 
 }
 func (self *getData) removeFriend(item postData) {
 	for i := range self.Follower {
 		if self.Follower[i].Userfollowerid == item.Follower[0].Userfollowerid {
 			self.Follower = append(self.Follower[:i], self.Follower[i+1:]...)
-			fmt.Println(i)
-			fmt.Println("match ho geya")
 			break
 		}
 	}
@@ -343,20 +292,15 @@ func (self *getData) removeFriend(item postData) {
 func Addfollower(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
-	//name:=c.FormValue("Cms")
-	//fmt.Println(name)
-	//name =c.FormValue("name")
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
 	b, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
 	os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)

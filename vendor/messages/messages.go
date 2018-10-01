@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"shared"
 	"time"
 
@@ -85,10 +84,15 @@ type GetChatDetail struct {
 	SenderID bson.ObjectId `json:"senderid"`
 }
 
+var response shared.Response
+
 //GET *********************************************************************************
 func GetAllMessages(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MESSAGESCOLLECTION)
 	results := res{}
 	err = db.Find(bson.M{}).All(&results.Data)
@@ -101,18 +105,23 @@ func GetAllMessages(c echo.Context) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(results)
+	if len(results.Data) < 1 {
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	buff, _ := json.Marshal(&results)
-	fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "User Messages", 200, results.Data[0])
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 func GetUserChat(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.CHATCOLLECTION)
 	results := Message{}
 
@@ -121,39 +130,28 @@ func GetUserChat(c echo.Context) (err error) {
 	}
 	res := GetChatDetail{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 
 	err = db.Find(bson.M{"chatid": res.ChatID}).One(&results)
-
 	if err != nil {
 		defer session.Close()
-		return c.JSON(http.StatusOK, "data not found")
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	MarkAsRead(res.ChatID, res.SenderID)
-	//fmt.Println(results)
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "User Messages", 200, results)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 
 func GetUserChatStatus(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MESSAGESCOLLECTION)
 	results := getData{}
 
@@ -162,53 +160,37 @@ func GetUserChatStatus(c echo.Context) (err error) {
 	}
 	res := GetChatDetail{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 
 	err = db.Find(bson.M{"user1id": res.SenderID}).One(&results)
-
 	if err != nil {
 		err1 := db.Find(bson.M{"user2id": res.SenderID}).One(&results)
 		if err1 != nil {
-			defer session.Close()
-			return c.JSON(http.StatusOK, 0)
+			response = shared.ReturnMessage(false, "chat status not found", 404, "")
 		} else {
 			if results.User2ChatStatus == 1 {
-				defer session.Close()
-				return c.JSON(http.StatusOK, 1)
+				response = shared.ReturnMessage(true, "User chat status", 200, results)
 			} else {
-				defer session.Close()
-				return c.JSON(http.StatusOK, 0)
+				response = shared.ReturnMessage(false, "chat status not found", 404, results)
 			}
 		}
-
 	} else {
 		if results.User1ChatStatus == 1 {
-			defer session.Close()
-			return c.JSON(http.StatusOK, 1)
+			response = shared.ReturnMessage(true, "User chat status", 200, results)
 		} else {
-			defer session.Close()
-			return c.JSON(http.StatusOK, 0)
+			response = shared.ReturnMessage(false, "chat status not found", 404, results)
 		}
 	}
 
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 func GetUserMessagesDetail(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MESSAGESCOLLECTION)
 	results := res{}
 	results2 := res{}
@@ -219,54 +201,29 @@ func GetUserMessagesDetail(c echo.Context) (err error) {
 	}
 	res := postData{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 
 	err = db.Find(bson.M{"user1id": res.User1ID}).All(&results.Data)
-
 	if err != nil {
-		fmt.Println("user1 no data")
-		err = db.Find(bson.M{"user2id": res.User1ID}).All(&results.Data)
-		if err != nil {
-			defer session.Close()
-			return c.JSON(http.StatusOK, "data not found")
+		err1 := db.Find(bson.M{"user2id": res.User1ID}).All(&results.Data)
+		if err1 != nil {
+			response = shared.ReturnMessage(false, "Record not found", 404, "")
 		} else {
-			newdata = results
-			//fmt.Println(newdata)
+			response = shared.ReturnMessage(true, "User messages detail ", 200, results.Data[0])
 		}
-
 	} else {
 		newdata = results
 		err = db.Find(bson.M{"user2id": res.User1ID}).All(&results2.Data)
 		if err != nil {
-			fmt.Println("user2 no data")
-			defer session.Close()
-			return c.JSON(http.StatusOK, newdata)
+			response = shared.ReturnMessage(false, "Record not found", 404, "")
 		} else {
-			fmt.Println("user2 data found")
 			for i := range results2.Data {
 				newdata.AddItem22(results2.Data[i])
 			}
+			response = shared.ReturnMessage(true, "User messages detail", 200, newdata.Data)
 		}
 	}
-
-	// //fmt.Println(results)
-	// buff, _ := json.Marshal(&newdata)
-	// //fmt.Println(string(buff))
-
-	// json.Unmarshal(buff, &newdata)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &newdata)
+	return c.JSON(http.StatusOK, response)
 
 }
 func (box *res) AddItem22(item getData) []getData {
@@ -276,38 +233,23 @@ func (box *res) AddItem22(item getData) []getData {
 
 //POST *********************************************************************************
 func AddUserMessages(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MESSAGESCOLLECTION)
-
 	u := new(GetDataFromUser)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := GetDataFromUser{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res)
 	senderuserinfo := shared.UserinfoUpdategetData{}
 	receiveruserinfo := shared.UserinfoUpdategetData{}
 
 	senderuserinfo = UserInfo(res.SenderUserID)
 	receiveruserinfo = UserInfo(res.ReceiverUserID)
-
-	//fmt.Println("userinfo")
-	//fmt.Println(receiveruserinfo)
 	age := senderuserinfo.Age
 
 	result := getData{}
@@ -315,7 +257,6 @@ func AddUserMessages(c echo.Context) (err error) {
 	mid := xid.New()
 	//send message data save
 	if err != nil {
-
 		err1 := db.Find(bson.M{"user1id": res.ReceiverUserID, "user2id": res.SenderUserID}).One(&result)
 		if err1 != nil {
 			userdetail := postData{}
@@ -330,14 +271,15 @@ func AddUserMessages(c echo.Context) (err error) {
 			//unread = 1
 			userdetail.User1ChatStatus = 0
 			userdetail.User2ChatStatus = 1
-			db.Insert(userdetail)
+			err = db.Insert(userdetail)
 			AddChatMessages(mid.String(), res.Message, res.SenderUserID, age)
-			// if a == true {
-			// 	fmt.Println("chat added")
-			// }
-			//fmt.Println(age)
+			if err != nil {
+				response = shared.ReturnMessage(false, "Chat Not added", 409, "")
+				return c.JSON(http.StatusOK, response)
+			}
+			response = shared.ReturnMessage(true, " Chat added", 200, "")
 			defer session.Close()
-			return c.JSON(http.StatusOK, "new msg create")
+			return c.JSON(http.StatusOK, response)
 		} else {
 			newdata := getData{}
 			newdata = result
@@ -346,14 +288,15 @@ func AddUserMessages(c echo.Context) (err error) {
 			newdata.User1ChatStatus = 1
 			newdata.User2ChatStatus = 0
 
-			db.Update(result, newdata)
+			err = db.Update(result, newdata)
 			AddChatMessages(result.ChatID, res.Message, res.SenderUserID, age)
-			// if a == true {
-			// 	fmt.Println("chat added")
-			// }
-			fmt.Println("user found")
+			if err != nil {
+				response = shared.ReturnMessage(false, "Chat Not update", 409, "")
+				return c.JSON(http.StatusOK, response)
+			}
+			response = shared.ReturnMessage(true, "Chat update", 200, "")
 			defer session.Close()
-			return c.JSON(http.StatusOK, "chat update")
+			return c.JSON(http.StatusOK, response)
 		}
 
 	} else {
@@ -364,18 +307,16 @@ func AddUserMessages(c echo.Context) (err error) {
 		newdata.User1ChatStatus = 0
 		newdata.User2ChatStatus = 1
 
-		db.Update(result, newdata)
+		err = db.Update(result, newdata)
 		AddChatMessages(result.ChatID, res.Message, res.SenderUserID, age)
-		// if a == true {
-		// 	fmt.Println("chat added")
-		// }
-		fmt.Println("user found")
+		if err != nil {
+			response = shared.ReturnMessage(false, "Chat Not update", 409, "")
+			return c.JSON(http.StatusOK, response)
+		}
+		response = shared.ReturnMessage(true, "Chat update", 200, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, "chatupdate")
+		return c.JSON(http.StatusOK, response)
 	}
-
-	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
 }
 
 func AddChatMessages(chatid string, msg string, senderid bson.ObjectId, age int) {
@@ -455,46 +396,31 @@ func UserInfo(userid bson.ObjectId) shared.UserinfoUpdategetData {
 
 func RemoveUserMessages(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MESSAGESCOLLECTION)
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-
-	fmt.Println(res)
 	result := getData{}
-
 	err = db.Find(bson.M{"userid": res.ID}).One(&result)
 
-	//result.removeFriend(res)
-
 	result1 := getData{}
-
 	err = db.Find(bson.M{"userid": res.ID}).One(&result1)
 	if err != nil {
-		//fmt.Println(err)
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, "data not found")
+		return c.JSON(http.StatusOK, response)
 	}
 	db.Update(result1, result)
-	//fmt.Println(check)
+	response = shared.ReturnMessage(true, "Successfull deleted", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, "successfull deleted")
+	return c.JSON(http.StatusOK, response)
 
 }
 
