@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
 	"shared"
 	"strings"
 	"time"
@@ -228,53 +227,34 @@ func comparePasswords(hashedPwd string, plainPwd []byte) bool {
 }
 
 func PasswordVerification(c echo.Context) (err error) {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 
 	u := new(shared.UserpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.UserpostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	// os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	fmt.Println(res)
 	results := shared.Userres{}
 	err = db.Find(bson.M{"email": res.Email}).All(&results.Data)
-
 	if results.Data != nil {
-
-		fmt.Println("/n")
-		fmt.Println("user not available send email")
 		var maintoken string
 		maintoken = sendemail(res.Email, "password", "user")
-		//fmt.Println("this is token /n")
-		//fmt.Println(maintoken)
 		VerificationTokenSave(res.Email, maintoken, "password")
+		response = shared.ReturnMessage(true, "Email sent", 200, "")
 		//res.Status = "unverified"
 		//db.Insert(res)
-
 	} else {
-		fmt.Println("user available try to login")
-		defer session.Close()
-		return c.JSON(http.StatusOK, "user not available")
+		response = shared.ReturnMessage(false, "Invalid user", 404, "")
 	}
 	//db.Insert(res)
 	defer session.Close()
-	return c.JSON(http.StatusOK, "email send")
+	return c.JSON(http.StatusOK, response)
 
 }
 
@@ -308,12 +288,13 @@ func VerificationTokenSave(email string, token string, check string) {
 }
 
 func RegistrationVerfication(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
-	var db *mgo.Collection
-	db = session.DB(shared.DBName).C(shared.VERIFICATIONCOLLECTION)
-	fmt.Println("/n")
-	fmt.Println(reflect.TypeOf(db))
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
+	// var db *mgo.Collection
+	db := session.DB(shared.DBName).C(shared.VERIFICATIONCOLLECTION)
 	results := shared.Verificationres{}
 
 	u := new(shared.VerificationpostData)
@@ -321,135 +302,83 @@ func RegistrationVerfication(c echo.Context) error {
 	}
 	res := shared.VerificationpostData{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	// os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
 
 	//token := c.FormValue("token")
 	token := res.Token
-
 	err = db.Find(bson.M{"token": token}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Error finding record", 401, "")
+		return c.JSON(http.StatusOK, response)
 	}
 
-	t := time.Now()
-	fmt.Println("this is time /n")
-	fmt.Println(t)
-
 	if results.Data == nil {
-		defer session.Close()
-		return c.JSON(http.StatusOK, "invalid input")
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 
 	} else {
 		UpdateStatus(1, results.Data[0].EmailID, "registration")
-		defer session.Close()
-
-		//open.Start("https://google.com")
-		return c.JSON(http.StatusOK, 1)
+		response = shared.ReturnMessage(true, "Registered", 200, "")
 	}
-	//	buff, _ := json.Marshal(&results)
 
-	//	json.Unmarshal(buff, &results)
-	//	return c.JSON(http.StatusOK, &results)
+	defer session.Close()
+	return c.JSON(http.StatusOK, response)
 
 }
 
 func PasswordResetVerfication(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
-	var db *mgo.Collection
-	db = session.DB(shared.DBName).C(shared.PASSWORDVERIFICATIONCOLLECTION)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
+	db := session.DB(shared.DBName).C(shared.PASSWORDVERIFICATIONCOLLECTION)
 
 	results := shared.PasswordVerificationres{}
-
 	u := new(shared.PasswordVerificationpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.PasswordVerificationpostData{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r shared.PasswordVerificationRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
-
-	//token := c.FormValue("token")
 
 	err = db.Find(bson.M{"token": res.Token}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Error finding record", 401, "")
+		return c.JSON(http.StatusOK, response)
 	}
-
-	//t := time.Now()
-	fmt.Println("this is time /n")
-	fmt.Println(results)
-
 	if results.Data == nil {
-		defer session.Close()
-		return c.JSON(http.StatusOK, "invalid input")
-
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 	} else {
-		defer session.Close()
+		response = shared.ReturnMessage(true, "Token matched", 200, "")
 		//UpdateStatus("verified", results.Data[0].EmailID)
-		return c.JSON(http.StatusOK, "you can change your password now enter new password")
 	}
-
+	defer session.Close()
+	return c.JSON(http.StatusOK, response)
 }
 func ParentVerfication(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
-	var db *mgo.Collection
-	db = session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
+	db := session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
 
 	results := Parentres{}
-
 	token := c.FormValue("token")
 	useremail := c.FormValue("useremail")
-	fmt.Println(useremail)
 
 	err = db.Find(bson.M{"token": token, "kids": bson.M{"kidid": useremail}}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Error finding record", 401, "")
+		return c.JSON(http.StatusOK, response)
 	}
-
-	t := time.Now()
-	fmt.Println("this is time /n")
-	fmt.Println(t)
-
 	if results.Data == nil {
-		defer session.Close()
-		return c.JSON(http.StatusOK, "Invalid Link")
-
-	} else {
-		defer session.Close()
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		UpdateParentStatus(1, results.Data[0].Kids[0].KidID, "parent")
-		return c.JSON(http.StatusOK, "you are successfully verify your childer now you can see your childern activity")
+	} else {
+		UpdateParentStatus(1, results.Data[0].Kids[0].KidID, "parent")
+		response = shared.ReturnMessage(true, "Successfylly verified", 200, "")
 	}
-
+	defer session.Close()
+	return c.JSON(http.StatusOK, response)
 }
 
 func UpdateStatus(status int, email string, check string) {
@@ -1892,8 +1821,11 @@ func ViewProfileById(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 func GetParentKids(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = dbResponse()
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
 	results := Parentres{}
 
@@ -1901,88 +1833,52 @@ func GetParentKids(c echo.Context) error {
 	if err = c.Bind(&u); err != nil {
 	}
 	res := ParentpostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r ParentRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
-
-	//email :=c.FormValue("email")
 	email := res.ParentEmail
-
 	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
-
 	err = db.Find(bson.M{"parentemail": email}).All(&results.Data)
-
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Error finding record", 401, "")
+		return c.JSON(http.StatusOK, response)
 	}
 	if results.Data == nil {
-		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
+	} else {
+		response = shared.ReturnMessage(true, "Kids data", 200, results.Data)
 	}
-	//fmt.Println(results)
-	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
-	json.Unmarshal(buff, &results)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 }
 func PasswordChange(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	//name:=c.FormValue("Cms")
-	//fmt.Println(name)
-	//name =c.FormValue("name")
+
 	u := new(shared.UserpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.UserpostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res)
-	//fmt.Println(res.Data)
-	//fmt.Println(res)
 	result := shared.UserUpdateData{}
-	//fmt.Println("%T \n", result)
 	err = db.Find(bson.M{"email": res.Email}).One(&result)
 	newdata := shared.UserUpdateData{}
 	newdata = result
 
 	if res.Password != "" {
 		hash := hashAndSalt([]byte(res.Password))
-		//res.Password = hash
 		newdata.Password = hash
+		db.Update(result, newdata)
+		response = shared.ReturnMessage(true, "Password changed", 200, newdata)
+	} else {
+		response = shared.ReturnMessage(false, "Password not changed", 404, "")
 	}
-
-	db.Update(result, newdata)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &newdata)
+	return c.JSON(http.StatusOK, response)
 }
 
 // docker run --name mongodb \

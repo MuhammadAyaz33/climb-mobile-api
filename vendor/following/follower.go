@@ -291,40 +291,32 @@ func (self *getData) removeFriend(item postData) {
 
 func Addfollower(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
 	u := new(postData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := postData{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-
-	fmt.Println(res)
 	result := getData{}
-
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
+	if err != nil {
+		response = shared.ReturnMessage(false, "Can't follow, error", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	newdata := getData{}
 	newdata = result
-
 	a := res.Follower[0].Userfollowerid
-
 	item1 := getProduct{Userfollowerid: a}
-
 	newdata.AddItem(item1)
 	db.Update(result, newdata)
+	response = shared.ReturnMessage(true, "Successfully followed", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, &r)
+	return c.JSON(http.StatusOK, response)
 }
 func (box *getData) AddItem(item getProduct) []getProduct {
 	box.Follower = append(box.Follower, item)
@@ -332,8 +324,11 @@ func (box *getData) AddItem(item getProduct) []getProduct {
 }
 
 func UpdateParentStatus(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
 	results := getData{}
 	newdata := getData{}
@@ -342,34 +337,13 @@ func UpdateParentStatus(c echo.Context) error {
 	if err = c.Bind(&u); err != nil {
 	}
 	res := GetUserData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
-
-	var jsonBlob = []byte(b)
-	var r Res
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	//fmt.Println(res.Email)
-
-	//email :=c.FormValue("email")
-	//email := res.UserID
-	//fmt.Println("/n", email)
-	//password:=c.FormValue("password")
-
 	//err = db.Find(bson.M{"$or":[]bson.M{bson.M{"cms":cms},bson.M{"name":name}}}).All(&results.Data)
-	//fmt.Println(email)
 	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
 	newdata = results
 	if err != nil {
-		//log.Fatal(err)
+		response = shared.ReturnMessage(false, "Record not added", 400, "")
+		return c.JSON(http.StatusOK, response)
 	}
 
 	for i := range results.Follower {
@@ -382,10 +356,9 @@ func UpdateParentStatus(c echo.Context) error {
 	}
 	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
 	db.Update(results, newdata)
-
+	response = shared.ReturnMessage(true, "Parent status updated", 200, "")
 	defer session.Close()
-
-	return c.JSON(http.StatusOK, 1)
+	return c.JSON(http.StatusOK, response)
 
 }
 

@@ -3,7 +3,6 @@ package mentor
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"notification"
 	"shared"
@@ -56,7 +55,7 @@ var response shared.Response
 func BecomeMentorRequest(c echo.Context) (err error) {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	if err != nil || session == nil {
-		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		response = shared.ReturnMessage(false, "Database Not Connected", 501, "")
 		return c.JSON(http.StatusOK, response)
 	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
@@ -78,9 +77,9 @@ func BecomeMentorRequest(c echo.Context) (err error) {
 		res.AdminStatus = 0
 		db.Insert(res)
 		notification.AddChildMentorRequestFormHistory(res.UserID)
-		response = shared.ReturnMessage(true, "Request Submited", 200, "")
+		response = shared.ReturnMessage(true, "Mentor added", 200, "")
 	} else {
-		response = shared.ReturnMessage(false, "User Already Submit Request", 409, "")
+		response = shared.ReturnMessage(false, "Mentor already exist", 409, "")
 	}
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
@@ -89,74 +88,61 @@ func BecomeMentorRequest(c echo.Context) (err error) {
 func GetAllMentorAdminRequest(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	if err != nil || session == nil {
-		response = shared.ReturnMessage(false, "Database Not Connected", 401, "")
+		response = shared.ReturnMessage(false, "Database Not Connected", 501, "")
 		return c.JSON(http.StatusOK, response)
 	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 	results := shared.BMentorres{}
 	err = db.Find(bson.M{"adminstatus": 0}).All(&results.Data)
-
-	//  |  for one result
-	//  V
-	//result := getData{}
-	//err = db.Find(bson.M{"name": "two"}).One(&result)
 	if err != nil {
-		log.Fatal(err)
+		response = shared.ReturnMessage(false, "Error finding  admin status", 404, "")
+		return c.JSON(http.StatusOK, response)
 	}
-	//fmt.Println(results)
+	if results.Data == nil {
+		response = shared.ReturnMessage(false, "Admin status not found", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	buff, _ := json.Marshal(&results)
-	fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Admin status", 200, results.Data)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, response)
 
 }
 func GetMentorParentsRequest(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 
 	u := new(userRequest)
 	if err := c.Bind(&u); err != nil {
 	}
 	res := userRequest{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("parent get kid mentor request")
-	//os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	kiddata := ParentgetData{}
 	kiddata = GetParentKids(res.UserEmail)
 	results := shared.BMentorres{}
 	kidrequest := shared.BMentorgetData{}
 	for x := range kiddata.Kids {
-		fmt.Println(kiddata.Kids[x].KidID)
 		kidemail := kiddata.Kids[x].KidID
 		err = db.Find(bson.M{"useremail": kidemail, "parentstatus": 0}).One(&kidrequest)
 		if err == nil {
 			results.Data = append(results.Data, kidrequest)
 		}
-
 	}
-
+	if results.Data == nil {
+		response = shared.ReturnMessage(false, "Parent status not found", 404, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Parent status", 200, results.Data)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
-
+	return c.JSON(http.StatusOK, response)
 }
 func GetParentKids(parentemail string) ParentgetData {
 
@@ -176,31 +162,24 @@ func GetParentKids(parentemail string) ParentgetData {
 
 func UpdateParentStatus(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 
 	u := new(shared.BMentorpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.BMentorpostData{}
-	//fmt.Println("this is C:",postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("update parent status of mentor request")
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	result := shared.BMentorpostData{}
 
+	result := shared.BMentorpostData{}
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
+		response = shared.ReturnMessage(false, "Error finding record", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		return c.JSON(http.StatusOK, response)
 		//results.Data = append(results.Data, kidrequest)
 	}
 	// res.ContributionStatus = 1
@@ -209,10 +188,9 @@ func UpdateParentStatus(c echo.Context) error {
 	newdata.ParentStatus = 1
 	db.Update(result, newdata)
 	notification.AddParentMentorRequestApprove(result.UserID)
-
+	response = shared.ReturnMessage(true, "Status updated", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, 1)
-
+	return c.JSON(http.StatusOK, response)
 }
 func UpdateRejectParentMentorStatus(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -241,38 +219,31 @@ func UpdateRejectParentMentorStatus(c echo.Context) error {
 	db.Update(result, newdata)
 	notification.AddParentMentorRequestReject(result.UserID)
 
-	response = shared.ReturnMessage(true, "Record Updated", 200, "")
+	response = shared.ReturnMessage(true, "Status updated", 200, "")
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
 }
 
 func UpdateAdminStatus(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 
 	u := new(shared.BMentorpostData)
 	if err = c.Bind(&u); err != nil {
 	}
 	res := shared.BMentorpostData{}
-	//fmt.Println("this is C:", postData{})
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("update admin status of mentor request")
-	var jsonBlob = []byte(b)
-	var r shared.ContributionRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
-	result := shared.BMentorpostData{}
 
+	result := shared.BMentorpostData{}
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
+		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		return c.JSON(http.StatusNotFound, response)
 		//results.Data = append(results.Data, kidrequest)
 	}
 	// res.ContributionStatus = 1
@@ -281,9 +252,9 @@ func UpdateAdminStatus(c echo.Context) error {
 	newdata.AdminStatus = 1
 	db.Update(result, newdata)
 	notification.AddAdminMentorRequestApprove(result.UserID)
-
+	response = shared.ReturnMessage(true, "Status updated", 200, "")
 	defer session.Close()
-	return c.JSON(http.StatusOK, 1)
+	return c.JSON(http.StatusOK, response)
 }
 func UpdateAdminRejectStatus(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -317,8 +288,11 @@ func UpdateAdminRejectStatus(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 func GetMentorRequest(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 
 	u := new(getMentorRequest)
@@ -326,41 +300,28 @@ func GetMentorRequest(c echo.Context) error {
 	}
 	res := getMentorRequest{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("get mentor request by user id")
-	//os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	result := shared.BMentorgetData{}
-	response := mentorRequestResponse{}
+	resp := mentorRequestResponse{}
 
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
-		response.Status = 0
-		defer session.Close()
-		return c.JSON(http.StatusOK, &response)
-		//results.Data = append(results.Data, kidrequest)
+		resp.Status = 0
+		response = shared.ReturnMessage(false, "Error finding data", 404, resp)
+	} else {
+		resp.Status = 1
+		response = shared.ReturnMessage(true, "Mentor dtatus", 200, resp)
 	}
-	response.Status = 1
-	buff, _ := json.Marshal(&response)
-	//fmt.Println(string(buff))
-
-	json.Unmarshal(buff, &response)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &response)
+	return c.JSON(http.StatusOK, response)
 
 }
 func GetMentorRequestDetail(c echo.Context) error {
-
 	session, err := shared.ConnectMongo(shared.DBURL)
+	if err != nil || session == nil {
+		response = shared.ReturnMessage(false, "Server error", 501, "")
+		return c.JSON(http.StatusOK, response)
+	}
 	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
 
 	u := new(getMentorRequest)
@@ -368,35 +329,14 @@ func GetMentorRequestDetail(c echo.Context) error {
 	}
 	res := getMentorRequest{}
 	res = *u
-	b, err := json.Marshal(res)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println("get mentor request by user id")
-	//os.Stdout.Write(b)
 
-	var jsonBlob = []byte(b)
-	var r shared.UserRes
-	error := json.Unmarshal(jsonBlob, &r)
-	if error != nil {
-		fmt.Println("error:", error)
-	}
 	result := shared.BMentorgetData{}
-	// response := mentorRequestResponse{}
-
 	err = db.Find(bson.M{"userid": res.UserID}).One(&result)
 	if err != nil {
-		// response.Status = 0
-		defer session.Close()
-		return c.JSON(http.StatusOK, "no request found")
-		//results.Data = append(results.Data, kidrequest)
+		response = shared.ReturnMessage(false, "Error finding data", 404, "")
+	} else {
+		response = shared.ReturnMessage(true, "Mentor dtatus", 200, result)
 	}
-	// response.Status = 1
-	buff, _ := json.Marshal(&result)
-	//fmt.Println(string(buff))
-
-	json.Unmarshal(buff, &result)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &result)
-
+	return c.JSON(http.StatusOK, response)
 }
