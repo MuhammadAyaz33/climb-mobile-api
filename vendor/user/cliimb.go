@@ -449,17 +449,22 @@ func Login(c echo.Context) error {
 	if results.Data == nil {
 		response = shared.ReturnMessage(false, "Incorrect Username", 404, "")
 	} else {
-		mentorstatus := GetMentorRequest(email)
-		hash := results.Data[0].Password
-		check := comparePasswords(hash, []byte(password))
-		if check == true {
-			results.Data[0].MentorStatus = mentorstatus
-			buff, _ := json.Marshal(&results)
-			json.Unmarshal(buff, &results)
-			response = shared.ReturnMessage(true, "Logged In", 201, results.Data[0])
+		if results.Data[0].Status == 0 {
+			response = shared.ReturnMessage(false, "Please verify your email to continue", 404, "")
 		} else {
-			response = shared.ReturnMessage(false, "Incorrect Password", 404, "")
+			mentorstatus := GetMentorRequest(email)
+			hash := results.Data[0].Password
+			check := comparePasswords(hash, []byte(password))
+			if check == true {
+				results.Data[0].MentorStatus = mentorstatus
+				buff, _ := json.Marshal(&results)
+				json.Unmarshal(buff, &results)
+				response = shared.ReturnMessage(true, "Logged In", 201, results.Data[0])
+			} else {
+				response = shared.ReturnMessage(false, "Incorrect Password", 404, "")
+			}
 		}
+
 	}
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
