@@ -727,6 +727,10 @@ func UpdateProfile(c echo.Context) (err error) {
 			newdata.ParentEmail = res.ParentEmail
 		} else {
 			newdata.ParentEmail = res.ParentEmail
+			var maintoken string
+			maintoken = sendemail(res.ParentEmail, "parent", res.Email)
+
+			ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
 		}
 
 	}
