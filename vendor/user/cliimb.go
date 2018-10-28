@@ -77,7 +77,7 @@ func Adduser(c echo.Context) (err error) {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	//name:=c.FormValue("Cms")
+	// name := c.FormValue("Cms")
 	//fmt.Println(name)
 	//name =c.FormValue("name")
 	//fmt.Println(name)
@@ -724,6 +724,8 @@ func UpdateProfile(c echo.Context) (err error) {
 			//fmt.Println(maintoken)
 		}
 		if res.ParentEmail == result.ParentEmail {
+			newdata.ParentEmail = res.ParentEmail
+		} else {
 			newdata.ParentEmail = res.ParentEmail
 		}
 
