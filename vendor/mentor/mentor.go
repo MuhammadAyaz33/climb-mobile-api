@@ -2,7 +2,6 @@ package mentor
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"notification"
 	"shared"
@@ -126,11 +125,13 @@ func GetMentorParentsRequest(c echo.Context) error {
 	kiddata := ParentgetData{}
 	kiddata = GetParentKids(res.UserEmail)
 	results := shared.BMentorres{}
-	kidrequest := shared.BMentorgetData{}
+
+	//fmt.Println(len(kiddata.Kids))
 	for x := range kiddata.Kids {
+		kidrequest := shared.BMentorgetData{}
 		kidemail := kiddata.Kids[x].KidID
-		err = db.Find(bson.M{"useremail": kidemail, "parentstatus": 0}).One(&kidrequest)
-		if err == nil {
+		err11 := db.Find(bson.M{"useremail": kidemail, "parentstatus": 0}).One(&kidrequest)
+		if err11 == nil {
 			results.Data = append(results.Data, kidrequest)
 		}
 	}
@@ -155,7 +156,7 @@ func GetParentKids(parentemail string) ParentgetData {
 	if err != nil {
 		//log.Fatal(err)
 	}
-	fmt.Println(results)
+	//fmt.Println(results)
 	defer session.Close()
 	return results
 }

@@ -80,7 +80,7 @@ func Adduser(c echo.Context) (err error) {
 		return c.JSON(http.StatusOK, response)
 	}
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
-	//name:=c.FormValue("Cms")
+	// name := c.FormValue("Cms")
 	//fmt.Println(name)
 	//name =c.FormValue("name")
 	//fmt.Println(name)
@@ -362,8 +362,35 @@ func ParentVerfication(c echo.Context) error {
 	db := session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
 
 	results := Parentres{}
-	token := c.FormValue("token")
-	useremail := c.FormValue("useremail")
+
+	u := new(shared.VerificationpostData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := shared.VerificationpostData{}
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	//fmt.Println("this is res=", res)
+	// os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.UserRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res.Email)
+
+	//token := c.FormValue("token")
+	//token := res.Token
+
+	// token := c.FormValue("token")
+	// useremail := c.FormValue("useremail")
+	token := res.Token
+	useremail := res.EmailID
+	fmt.Println(useremail)
 
 	err = db.Find(bson.M{"token": token, "kids": bson.M{"kidid": useremail}}).All(&results.Data)
 	if err != nil {
@@ -374,8 +401,10 @@ func ParentVerfication(c echo.Context) error {
 		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		UpdateParentStatus(1, results.Data[0].Kids[0].KidID, "parent")
 	} else {
-		UpdateParentStatus(1, results.Data[0].Kids[0].KidID, "parent")
+		defer session.Close()
+		UpdateParentStatus(1, useremail, "parent")
 		response = shared.ReturnMessage(true, "Successfylly verified", 200, "")
+		// return c.JSON(http.StatusOK, "you are successfully verify your childer now you can see your childern activity")
 	}
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
@@ -402,12 +431,12 @@ func UpdateParentStatus(status int, email string, check string) {
 	db := session.DB(shared.DBName).C(shared.USERCOLLECTION)
 	if err != nil {
 	}
-
-	result := shared.UsergetData{}
+	fmt.Println(email)
+	result := shared.UserUpdateData{}
 	err = db.Find(bson.M{"email": email}).One(&result)
 	fmt.Println("helloloooooooo")
 	fmt.Println(result)
-	newresult := shared.UsergetData{}
+	newresult := shared.UserUpdateData{}
 	newresult = result
 	newresult.ParentStatus = 1
 
@@ -647,6 +676,12 @@ func UpdateProfile(c echo.Context) (err error) {
 		}
 		if res.ParentEmail == result.ParentEmail {
 			newdata.ParentEmail = res.ParentEmail
+		} else {
+			newdata.ParentEmail = res.ParentEmail
+			var maintoken string
+			maintoken = sendemail(res.ParentEmail, "parent", res.Email)
+
+			ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
 		}
 
 	}
@@ -1573,7 +1608,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 										 
 										  <tr>
 											 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #fff; text-align:left; line-height: 10px;" st-title="fulltext-title">
-												<a href="http://18.216.55.104:4200/email-verified?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Allow</a>
+												<a href="http://18.216.55.104:4200/parent-verification?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Allow</a>
 											 </td>
 										  </tr>
 										

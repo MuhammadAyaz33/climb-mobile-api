@@ -93,7 +93,7 @@ func main() {
 
 	// PARENT VERIFICATION FUNCTION *****
 
-	e.GET("/parentverification", user.ParentVerfication)
+	e.POST("/parentverification", user.ParentVerfication)
 	e.POST("/getparentkids", user.GetParentKids)
 
 	// USER PREFERENCES / SUGGESTION
