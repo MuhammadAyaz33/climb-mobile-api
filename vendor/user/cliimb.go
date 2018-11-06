@@ -103,6 +103,7 @@ func Adduser(c echo.Context) (err error) {
 	}
 	//fmt.Println(res)
 	results := shared.Userres{}
+	res.Email = strings.ToLower(res.Email)
 	err = db.Find(bson.M{"email": res.Email}).All(&results.Data)
 
 	if results.Data == nil {
@@ -550,7 +551,7 @@ func Login(c echo.Context) error {
 	if error != nil {
 		fmt.Println("error:", error)
 	}
-	email := res.Email
+	email := strings.ToLower(res.Email)
 
 	password := res.Password
 
