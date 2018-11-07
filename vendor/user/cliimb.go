@@ -105,6 +105,7 @@ func Adduser(c echo.Context) (err error) {
 		fmt.Println("error:", error)
 	}
 	results := shared.Userres{}
+	res.Email = strings.ToLower(res.Email)
 	err = db.Find(bson.M{"email": res.Email}).All(&results.Data)
 
 	if results.Data == nil {
@@ -472,7 +473,21 @@ func Login(c echo.Context) error {
 	res := shared.UserpostData{}
 	//fmt.Println("this is C:",postData{})
 	res = *u
-	email := res.Email
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("login ")
+	//	os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r shared.UserRes
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	email := strings.ToLower(res.Email)
+
 	password := res.Password
 	db.Find(bson.M{"email": email}).All(&results.Data)
 	if results.Data == nil {
@@ -1012,7 +1027,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 												 
 												  <tr>
 													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #fff; text-align:left; line-height: 10px;" st-title="fulltext-title">
-														<a href="http://18.216.55.104:4200/email-verified?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Confirm Email Address</a>
+														<a href="https://cliiimb.com/email-verified?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Confirm Email Address</a>
 													 </td>
 												  </tr>
 												
@@ -1310,7 +1325,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 												 
 												  <tr>
 													 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #fff; text-align:left; line-height: 10px;" st-title="fulltext-title">
-														<a href="http://18.216.55.104:4200/reset-password?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Reset Your Password</a>
+														<a href="https://cliiimb.com/reset-password?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Reset Your Password</a>
 													 </td>
 												  </tr>
 												
@@ -1608,7 +1623,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 										 
 										  <tr>
 											 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #fff; text-align:left; line-height: 10px;" st-title="fulltext-title">
-												<a href="http://18.216.55.104:4200/parent-verification?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Allow</a>
+												<a href="https://cliiimb.com/parent-verification?token=%s&useremail=%s" style="padding: 16px 30px;background:#ec1c24;border-radius: 5px;font-weight:600;border:1px solid #ec1c24;color: #fff ;">Allow</a>
 											 </td>
 										  </tr>
 										
