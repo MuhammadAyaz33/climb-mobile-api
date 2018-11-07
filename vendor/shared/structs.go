@@ -139,6 +139,7 @@ type BMentorgetData struct {
 	UserAge              int
 	AdminStatus          int
 	ParentStatus         int
+	ContributionType     string
 }
 type BMentorres struct {
 	Data []BMentorgetData
@@ -160,6 +161,7 @@ type BMentorpostData struct {
 	UserAge              int           `json:"userage"`
 	AdminStatus          int           `json:"adminstatus"`
 	ParentStatus         int           `json:"parentstatus"`
+	ContributionType     string        `json:"contributiontype"`
 }
 type MentorRes struct {
 	Data []BMentorpostData `json:"Data"`
