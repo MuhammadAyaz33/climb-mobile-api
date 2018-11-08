@@ -279,8 +279,41 @@ type ContributionData struct {
 	Likes                int
 	FoldOrder            []GetOrder
 }
+type GetContributionData struct {
+	ID                   bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	UserEmail            string
+	UserID               string
+	UserFullName         string
+	UserProfilePicture   string
+	Title                string
+	MainCategory         string
+	SubCategories        string
+	ContributionText     string
+	Videos               string
+	AudioPath            string
+	Images               []Getimageurl
+	Website              []Getwebsiteurl
+	Coverpage            string
+	Tags                 []Gettag
+	ViewCount            int
+	ContributionStatus   string
+	AdminStatus          int
+	Date                 string
+	ContributionType     string
+	Location             string
+	ContributionPostDate time.Time
+	Likes                int
+	FoldOrder            []GetOrder
+	UserBio              string
+	UserType             string
+	CommentsCount        int
+	LikesCount           int
+}
 type Contributionres struct {
 	Data []ContributionData
+}
+type GetContributionres struct {
+	Data []GetContributionData
 }
 
 type Postimageurl struct {

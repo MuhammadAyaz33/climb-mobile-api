@@ -29,7 +29,16 @@ type getData struct {
 	Likes          []likesgetproduct
 	Comments       []getProduct
 }
+type GetFavrtData struct {
+	ID             bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+	ContributionID string
+	Likes          []likesgetproduct
+	Comments       []getProduct
+}
 type res struct {
+	Data []getData
+}
+type GetFavrtres struct {
 	Data []getData
 }
 

@@ -2,6 +2,7 @@ package contribution
 
 import (
 	"encoding/json"
+	"favorites"
 	"fmt"
 	"net/http"
 	"notification"
@@ -18,12 +19,20 @@ type UserRequest struct {
 	userRequest string `json:"userRequest"`
 }
 
+type UserDetail struct {
+	UserID        string
+	UserBio       string
+	UserType      string
+	CommentsCount int
+	LikesCount    int
+}
+
 func ContributionGetAll(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
-	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
+	results := shared.GetContributionres{}
+	err = db.Find(bson.M{"contributionstatus": "Publish", "adminstatus": 1}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
@@ -36,7 +45,74 @@ func ContributionGetAll(c echo.Context) error {
 	if results.Data == nil {
 		return c.JSON(http.StatusOK, 0)
 	}
-	//fmt.Println(results)
+
+	userinfo := shared.UserinfoUpdategetData{}
+	userDetail := []UserDetail{}
+
+	for x := range results.Data {
+		if len(userDetail) <= 0 {
+			contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+			var contributionDetail favorites.GetFavrtData
+			contributionDetail = ContributionFavrt(contributionid)
+			UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+			fmt.Println("database request")
+			// fmt.Println("user id : ", UserIDconv)
+			userinfo = notification.UserInfo(UserIDconv)
+			// fmt.Println("user type : ", userinfo.UserType)
+			results.Data[x].UserBio = userinfo.Bio
+			results.Data[x].UserType = userinfo.UserType
+			results.Data[x].CommentsCount = len(contributionDetail.Comments)
+			results.Data[x].LikesCount = len(contributionDetail.Likes)
+
+			var data UserDetail
+			data.UserID = results.Data[x].UserID
+			data.UserBio = userinfo.Bio
+			data.UserType = userinfo.UserType
+			data.LikesCount = len(contributionDetail.Likes)
+			data.CommentsCount = len(contributionDetail.Comments)
+			userDetail = append(userDetail, data)
+		} else {
+			for a := range userDetail {
+				if userDetail[a].UserID == results.Data[x].UserID {
+					results.Data[x].UserBio = userDetail[a].UserBio
+					results.Data[x].UserType = userDetail[a].UserType
+					results.Data[x].CommentsCount = userDetail[a].CommentsCount
+					results.Data[x].LikesCount = userDetail[a].LikesCount
+					break
+				}
+			}
+			if results.Data[x].UserType == "" {
+				contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+				var contributionDetail favorites.GetFavrtData
+				contributionDetail = ContributionFavrt(contributionid)
+				UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+				fmt.Println("data request ")
+				// fmt.Println("user id : ", UserIDconv)
+				userinfo = notification.UserInfo(UserIDconv)
+				// fmt.Println("user type : ", userinfo.UserType)
+				results.Data[x].UserBio = userinfo.Bio
+				results.Data[x].UserType = userinfo.UserType
+				results.Data[x].CommentsCount = len(contributionDetail.Comments)
+				results.Data[x].LikesCount = len(contributionDetail.Likes)
+
+				var data UserDetail
+				data.UserID = results.Data[x].UserID
+				data.UserBio = userinfo.Bio
+				data.UserType = userinfo.UserType
+				data.LikesCount = len(contributionDetail.Likes)
+				data.CommentsCount = len(contributionDetail.Comments)
+				userDetail = append(userDetail, data)
+			}
+		}
+		// UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+		// fmt.Println("user id : ", UserIDconv)
+		// userinfo = notification.UserInfo(UserIDconv)
+		// fmt.Println("user type : ", userinfo.UserType)
+		// results.Data[x].UserBio = userinfo.Bio
+		// results.Data[x].UserType = userinfo.UserType
+
+	}
+
 	buff, _ := json.Marshal(&results)
 	//fmt.Println(string(buff))
 
@@ -45,6 +121,29 @@ func ContributionGetAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, &results)
 
 }
+func ContributionFavrt(contributionid string) favorites.GetFavrtData {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.FAVORITESCOLLECTION)
+	results := favorites.GetFavrtData{}
+
+	if err != nil {
+	}
+
+	err = db.Find(bson.M{"contributionid": contributionid}).One(&results)
+
+	if err != nil {
+		//log.Fatal(err)
+	}
+	//fmt.Println(results)
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return results
+}
+
 func GetAllRejectedContribution(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -76,8 +175,8 @@ func GetAllEvent(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
-	results := shared.Contributionres{}
-	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
+	results := shared.GetContributionres{}
+	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish", "adminstatus": 1}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
@@ -89,6 +188,73 @@ func GetAllEvent(c echo.Context) error {
 	}
 	if results.Data == nil {
 		return c.JSON(http.StatusOK, 0)
+	}
+
+	userinfo := shared.UserinfoUpdategetData{}
+	userDetail := []UserDetail{}
+
+	for x := range results.Data {
+		if len(userDetail) <= 0 {
+			contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+			var contributionDetail favorites.GetFavrtData
+			contributionDetail = ContributionFavrt(contributionid)
+			UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+			fmt.Println("database request")
+			// fmt.Println("user id : ", UserIDconv)
+			userinfo = notification.UserInfo(UserIDconv)
+			// fmt.Println("user type : ", userinfo.UserType)
+			results.Data[x].UserBio = userinfo.Bio
+			results.Data[x].UserType = userinfo.UserType
+			results.Data[x].CommentsCount = len(contributionDetail.Comments)
+			results.Data[x].LikesCount = len(contributionDetail.Likes)
+
+			var data UserDetail
+			data.UserID = results.Data[x].UserID
+			data.UserBio = userinfo.Bio
+			data.UserType = userinfo.UserType
+			data.LikesCount = len(contributionDetail.Likes)
+			data.CommentsCount = len(contributionDetail.Comments)
+			userDetail = append(userDetail, data)
+		} else {
+			for a := range userDetail {
+				if userDetail[a].UserID == results.Data[x].UserID {
+					results.Data[x].UserBio = userDetail[a].UserBio
+					results.Data[x].UserType = userDetail[a].UserType
+					results.Data[x].CommentsCount = userDetail[a].CommentsCount
+					results.Data[x].LikesCount = userDetail[a].LikesCount
+					break
+				}
+			}
+			if results.Data[x].UserType == "" {
+				contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+				var contributionDetail favorites.GetFavrtData
+				contributionDetail = ContributionFavrt(contributionid)
+				UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+				fmt.Println("data request ")
+				// fmt.Println("user id : ", UserIDconv)
+				userinfo = notification.UserInfo(UserIDconv)
+				// fmt.Println("user type : ", userinfo.UserType)
+				results.Data[x].UserBio = userinfo.Bio
+				results.Data[x].UserType = userinfo.UserType
+				results.Data[x].CommentsCount = len(contributionDetail.Comments)
+				results.Data[x].LikesCount = len(contributionDetail.Likes)
+
+				var data UserDetail
+				data.UserID = results.Data[x].UserID
+				data.UserBio = userinfo.Bio
+				data.UserType = userinfo.UserType
+				data.LikesCount = len(contributionDetail.Likes)
+				data.CommentsCount = len(contributionDetail.Comments)
+				userDetail = append(userDetail, data)
+			}
+		}
+		// UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+		// fmt.Println("user id : ", UserIDconv)
+		// userinfo = notification.UserInfo(UserIDconv)
+		// fmt.Println("user type : ", userinfo.UserType)
+		// results.Data[x].UserBio = userinfo.Bio
+		// results.Data[x].UserType = userinfo.UserType
+
 	}
 	//fmt.Println(results)
 	buff, _ := json.Marshal(&results)
