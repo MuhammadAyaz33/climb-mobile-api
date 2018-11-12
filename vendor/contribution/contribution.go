@@ -32,7 +32,7 @@ func ContributionGetAll(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.GetContributionres{}
-	err = db.Find(bson.M{"contributionstatus": "Publish", "adminstatus": 1}).Sort("-contributionpostdate").All(&results.Data)
+	err = db.Find(bson.M{"contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
@@ -176,7 +176,7 @@ func GetAllEvent(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.GetContributionres{}
-	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish", "adminstatus": 1}).Sort("-contributionpostdate").All(&results.Data)
+	err = db.Find(bson.M{"contributiontype": "event", "contributionstatus": "Publish"}).Sort("-contributionpostdate").All(&results.Data)
 
 	//  |  for one result
 	//  V
