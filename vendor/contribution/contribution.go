@@ -63,6 +63,9 @@ func ContributionGetAll(c echo.Context) error {
 			results.Data[x].UserType = userinfo.UserType
 			results.Data[x].CommentsCount = len(contributionDetail.Comments)
 			results.Data[x].LikesCount = len(contributionDetail.Likes)
+			fmt.Println("contribution id : ", contributionid)
+			fmt.Println("comment count : ", len(contributionDetail.Comments))
+			fmt.Println("like count : ", len(contributionDetail.Likes))
 
 			var data UserDetail
 			data.UserID = results.Data[x].UserID
@@ -76,8 +79,16 @@ func ContributionGetAll(c echo.Context) error {
 				if userDetail[a].UserID == results.Data[x].UserID {
 					results.Data[x].UserBio = userDetail[a].UserBio
 					results.Data[x].UserType = userDetail[a].UserType
-					results.Data[x].CommentsCount = userDetail[a].CommentsCount
-					results.Data[x].LikesCount = userDetail[a].LikesCount
+
+					contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+					var contributionDetail favorites.GetFavrtData
+					contributionDetail = ContributionFavrt(contributionid)
+
+					results.Data[x].CommentsCount = len(contributionDetail.Comments)
+					results.Data[x].LikesCount = len(contributionDetail.Likes)
+					fmt.Println("contribution id : ", contributionid)
+					fmt.Println("comment count : ", len(contributionDetail.Comments))
+					fmt.Println("like count : ", len(contributionDetail.Likes))
 					break
 				}
 			}
@@ -94,6 +105,9 @@ func ContributionGetAll(c echo.Context) error {
 				results.Data[x].UserType = userinfo.UserType
 				results.Data[x].CommentsCount = len(contributionDetail.Comments)
 				results.Data[x].LikesCount = len(contributionDetail.Likes)
+				fmt.Println("contribution id : ", contributionid)
+				fmt.Println("comment count : ", len(contributionDetail.Comments))
+				fmt.Println("like count : ", len(contributionDetail.Likes))
 
 				var data UserDetail
 				data.UserID = results.Data[x].UserID
