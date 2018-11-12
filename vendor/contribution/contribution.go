@@ -241,7 +241,13 @@ func GetAllEvent(c echo.Context) error {
 			results.Data[x].UserBio = userinfo.Bio
 			results.Data[x].UserType = userinfo.UserType
 			results.Data[x].CommentsCount = len(contributionDetail.Comments)
-			results.Data[x].LikesCount = len(contributionDetail.Likes)
+			if len(contributionDetail.Likes) > 0 {
+				for aa := range contributionDetail.Likes {
+					var userid shared.LikesUserID
+					userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+					results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+				}
+			}
 
 			var data UserDetail
 			data.UserID = results.Data[x].UserID
@@ -253,10 +259,21 @@ func GetAllEvent(c echo.Context) error {
 		} else {
 			for a := range userDetail {
 				if userDetail[a].UserID == results.Data[x].UserID {
+
+					contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+					var contributionDetail favorites.GetFavrtData
+					contributionDetail = ContributionFavrt(contributionid)
+
 					results.Data[x].UserBio = userDetail[a].UserBio
 					results.Data[x].UserType = userDetail[a].UserType
-					results.Data[x].CommentsCount = userDetail[a].CommentsCount
-					results.Data[x].LikesCount = userDetail[a].LikesCount
+					results.Data[x].CommentsCount = len(contributionDetail.Comments)
+					if len(contributionDetail.Likes) > 0 {
+						for aa := range contributionDetail.Likes {
+							var userid shared.LikesUserID
+							userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+							results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+						}
+					}
 					break
 				}
 			}
@@ -272,7 +289,13 @@ func GetAllEvent(c echo.Context) error {
 				results.Data[x].UserBio = userinfo.Bio
 				results.Data[x].UserType = userinfo.UserType
 				results.Data[x].CommentsCount = len(contributionDetail.Comments)
-				results.Data[x].LikesCount = len(contributionDetail.Likes)
+				if len(contributionDetail.Likes) > 0 {
+					for aa := range contributionDetail.Likes {
+						var userid shared.LikesUserID
+						userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+						results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+					}
+				}
 
 				var data UserDetail
 				data.UserID = results.Data[x].UserID
