@@ -1317,7 +1317,7 @@ func UserContribution(useremail string) shared.Contributionres {
 	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
 	results := shared.Contributionres{}
 
-	err = db.Find(bson.M{"useremail": useremail, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&results.Data)
+	err = db.Find(bson.M{"useremail": useremail, "contributiontype": "contribution", "adminstatus": 1}).Sort("-contributionpostdate").All(&results.Data)
 
 	if err != nil {
 		//log.Fatal(err)
