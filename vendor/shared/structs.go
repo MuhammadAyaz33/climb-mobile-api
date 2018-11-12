@@ -308,6 +308,7 @@ type GetContributionData struct {
 	UserType             string
 	CommentsCount        int
 	LikesUserID          []LikesUserID
+	ProContributor       bool
 }
 type LikesUserID struct {
 	LikeUserID string

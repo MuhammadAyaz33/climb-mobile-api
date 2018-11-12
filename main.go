@@ -38,6 +38,7 @@ func main() {
 	// CONTRIBUTION FUNCITON
 	//e.GET("/", getAll)
 	e.GET("/showallcontribution", contribution.ContributionGetAll)
+	e.GET("/showallmaincontribution", contribution.MainContributionGetAll)
 	e.GET("/showallevent", contribution.GetAllEvent)
 	e.POST("/addcontribution", contribution.Addcontribution)
 	e.POST("/searchcontribution", contribution.SearchContribution)

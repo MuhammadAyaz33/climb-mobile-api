@@ -20,11 +20,12 @@ type UserRequest struct {
 }
 
 type UserDetail struct {
-	UserID        string
-	UserBio       string
-	UserType      string
-	CommentsCount int
-	LikesCount    int
+	UserID         string
+	UserBio        string
+	UserType       string
+	CommentsCount  int
+	LikesCount     int
+	ProContributor bool
 }
 
 func ContributionGetAll(c echo.Context) error {
@@ -55,6 +56,7 @@ func ContributionGetAll(c echo.Context) error {
 			var contributionDetail favorites.GetFavrtData
 			contributionDetail = ContributionFavrt(contributionid)
 			UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+
 			fmt.Println("database request")
 			// fmt.Println("user id : ", UserIDconv)
 			userinfo = notification.UserInfo(UserIDconv)
@@ -156,6 +158,146 @@ func ContributionGetAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, &results)
 
 }
+
+func MainContributionGetAll(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	results := shared.GetContributionres{}
+	err = db.Find(bson.M{"contributionstatus": "Publish", "adminstatus": 1}).Sort("-contributionpostdate").All(&results.Data)
+
+	//  |  for one result
+	//  V
+	//result := getData{}
+	//err = db.Find(bson.M{"name": "two"}).One(&result)
+	fmt.Println("Get All Contribution")
+	if err != nil {
+
+	}
+	if results.Data == nil {
+		return c.JSON(http.StatusOK, 0)
+	}
+
+	userinfo := shared.UserinfoUpdategetData{}
+	userDetail := []UserDetail{}
+
+	for x := range results.Data {
+		if len(userDetail) <= 0 {
+			contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+			var contributionDetail favorites.GetFavrtData
+			contributionDetail = ContributionFavrt(contributionid)
+			UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+			pro := CheckProContributor(results.Data[x].UserEmail)
+
+			fmt.Println("database request")
+			// fmt.Println("user id : ", UserIDconv)
+			userinfo = notification.UserInfo(UserIDconv)
+			// fmt.Println("user type : ", userinfo.UserType)
+			results.Data[x].UserBio = userinfo.Bio
+			results.Data[x].UserType = userinfo.UserType
+			results.Data[x].ProContributor = pro
+			results.Data[x].CommentsCount = len(contributionDetail.Comments)
+			if len(contributionDetail.Likes) > 0 {
+				for aa := range contributionDetail.Likes {
+					var userid shared.LikesUserID
+					userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+					results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+				}
+			}
+
+			// fmt.Println("contribution id : ", contributionid)
+			// fmt.Println("comment count : ", len(contributionDetail.Comments))
+			// fmt.Println("like count : ", len(contributionDetail.Likes))
+
+			var data UserDetail
+			data.UserID = results.Data[x].UserID
+			data.UserBio = userinfo.Bio
+			data.UserType = userinfo.UserType
+			data.LikesCount = len(contributionDetail.Likes)
+			data.CommentsCount = len(contributionDetail.Comments)
+			data.ProContributor = pro
+			userDetail = append(userDetail, data)
+		} else {
+			for a := range userDetail {
+				if userDetail[a].UserID == results.Data[x].UserID {
+					results.Data[x].UserBio = userDetail[a].UserBio
+					results.Data[x].UserType = userDetail[a].UserType
+					results.Data[x].ProContributor = userDetail[a].ProContributor
+
+					contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+					var contributionDetail favorites.GetFavrtData
+					contributionDetail = ContributionFavrt(contributionid)
+
+					results.Data[x].CommentsCount = len(contributionDetail.Comments)
+					// results.Data[x].LikesUserID = contributionDetail.Likes
+					// fmt.Println("contribution id : ", contributionid)
+					// fmt.Println("comment count : ", len(contributionDetail.Comments))
+					// fmt.Println("like count : ", len(contributionDetail.Likes))
+					if len(contributionDetail.Likes) > 0 {
+						for aa := range contributionDetail.Likes {
+							var userid shared.LikesUserID
+							userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+							results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+						}
+					}
+					break
+				}
+			}
+			if results.Data[x].UserType == "" {
+				contributionid := fmt.Sprintf("%x", string(results.Data[x].ID))
+				var contributionDetail favorites.GetFavrtData
+				contributionDetail = ContributionFavrt(contributionid)
+				UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+
+				pro := CheckProContributor(results.Data[x].UserEmail)
+
+				fmt.Println("data request ")
+				// fmt.Println("user id : ", UserIDconv)
+				userinfo = notification.UserInfo(UserIDconv)
+				// fmt.Println("user type : ", userinfo.UserType)
+				results.Data[x].UserBio = userinfo.Bio
+				results.Data[x].UserType = userinfo.UserType
+				results.Data[x].CommentsCount = len(contributionDetail.Comments)
+				results.Data[x].ProContributor = pro
+				// results.Data[x].LikesUserID = contributionDetail.Likes
+
+				// fmt.Println("contribution id : ", contributionid)
+				// fmt.Println("comment count : ", len(contributionDetail.Comments))
+				// fmt.Println("like count : ", len(contributionDetail.Likes))
+				if len(contributionDetail.Likes) > 0 {
+					for aa := range contributionDetail.Likes {
+						var userid shared.LikesUserID
+						userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+						results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+					}
+				}
+				var data UserDetail
+				data.UserID = results.Data[x].UserID
+				data.UserBio = userinfo.Bio
+				data.UserType = userinfo.UserType
+				data.LikesCount = len(contributionDetail.Likes)
+				data.CommentsCount = len(contributionDetail.Comments)
+				data.ProContributor = pro
+				userDetail = append(userDetail, data)
+			}
+		}
+		// UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+		// fmt.Println("user id : ", UserIDconv)
+		// userinfo = notification.UserInfo(UserIDconv)
+		// fmt.Println("user type : ", userinfo.UserType)
+		// results.Data[x].UserBio = userinfo.Bio
+		// results.Data[x].UserType = userinfo.UserType
+
+	}
+
+	buff, _ := json.Marshal(&results)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &results)
+	defer session.Close()
+	return c.JSON(http.StatusOK, &results)
+
+}
 func ContributionFavrt(contributionid string) favorites.GetFavrtData {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -234,12 +376,14 @@ func GetAllEvent(c echo.Context) error {
 			var contributionDetail favorites.GetFavrtData
 			contributionDetail = ContributionFavrt(contributionid)
 			UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+			pro := CheckProContributor(results.Data[x].UserEmail)
 			fmt.Println("database request")
 			// fmt.Println("user id : ", UserIDconv)
 			userinfo = notification.UserInfo(UserIDconv)
 			// fmt.Println("user type : ", userinfo.UserType)
 			results.Data[x].UserBio = userinfo.Bio
 			results.Data[x].UserType = userinfo.UserType
+			results.Data[x].ProContributor = pro
 			results.Data[x].CommentsCount = len(contributionDetail.Comments)
 			if len(contributionDetail.Likes) > 0 {
 				for aa := range contributionDetail.Likes {
@@ -255,6 +399,7 @@ func GetAllEvent(c echo.Context) error {
 			data.UserType = userinfo.UserType
 			data.LikesCount = len(contributionDetail.Likes)
 			data.CommentsCount = len(contributionDetail.Comments)
+			data.ProContributor = pro
 			userDetail = append(userDetail, data)
 		} else {
 			for a := range userDetail {
@@ -266,6 +411,7 @@ func GetAllEvent(c echo.Context) error {
 
 					results.Data[x].UserBio = userDetail[a].UserBio
 					results.Data[x].UserType = userDetail[a].UserType
+					results.Data[x].ProContributor = userDetail[a].ProContributor
 					results.Data[x].CommentsCount = len(contributionDetail.Comments)
 					if len(contributionDetail.Likes) > 0 {
 						for aa := range contributionDetail.Likes {
@@ -282,13 +428,16 @@ func GetAllEvent(c echo.Context) error {
 				var contributionDetail favorites.GetFavrtData
 				contributionDetail = ContributionFavrt(contributionid)
 				UserIDconv := bson.ObjectIdHex(results.Data[x].UserID)
+				pro := CheckProContributor(results.Data[x].UserEmail)
 				fmt.Println("data request ")
 				// fmt.Println("user id : ", UserIDconv)
 				userinfo = notification.UserInfo(UserIDconv)
 				// fmt.Println("user type : ", userinfo.UserType)
 				results.Data[x].UserBio = userinfo.Bio
 				results.Data[x].UserType = userinfo.UserType
+				results.Data[x].ProContributor = pro
 				results.Data[x].CommentsCount = len(contributionDetail.Comments)
+
 				if len(contributionDetail.Likes) > 0 {
 					for aa := range contributionDetail.Likes {
 						var userid shared.LikesUserID
@@ -303,6 +452,7 @@ func GetAllEvent(c echo.Context) error {
 				data.UserType = userinfo.UserType
 				data.LikesCount = len(contributionDetail.Likes)
 				data.CommentsCount = len(contributionDetail.Comments)
+				data.ProContributor = pro
 				userDetail = append(userDetail, data)
 			}
 		}
@@ -1137,4 +1287,42 @@ func RejectContribution(c echo.Context) (err error) {
 	response.Message = "Successfuly Rejected"
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
+}
+
+func CheckProContributor(useremail string) bool {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORREQUESTCOLLECTION)
+
+	result := shared.BMentorgetData{}
+	// response := mentorRequestResponse{}
+
+	err = db.Find(bson.M{"useremail": useremail}).One(&result)
+	if err != nil {
+		fmt.Println("user mentor request form not submitted")
+		defer session.Close()
+		return false
+	}
+	var contributions shared.Contributionres
+	contributions = UserContribution(useremail)
+	if len(contributions.Data) >= 5 {
+		defer session.Close()
+		return true
+	}
+
+	defer session.Close()
+	return false
+}
+func UserContribution(useremail string) shared.Contributionres {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.CONTRIBUTIONCOLLECTION)
+	results := shared.Contributionres{}
+
+	err = db.Find(bson.M{"useremail": useremail, "contributiontype": "contribution"}).Sort("-contributionpostdate").All(&results.Data)
+
+	if err != nil {
+		//log.Fatal(err)
+	}
+
+	defer session.Close()
+	return results
 }
