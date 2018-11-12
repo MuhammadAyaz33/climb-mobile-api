@@ -62,7 +62,14 @@ func ContributionGetAll(c echo.Context) error {
 			results.Data[x].UserBio = userinfo.Bio
 			results.Data[x].UserType = userinfo.UserType
 			results.Data[x].CommentsCount = len(contributionDetail.Comments)
-			results.Data[x].LikesCount = len(contributionDetail.Likes)
+			if len(contributionDetail.Likes) > 0 {
+				for aa := range contributionDetail.Likes {
+					var userid shared.LikesUserID
+					userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+					results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+				}
+			}
+
 			// fmt.Println("contribution id : ", contributionid)
 			// fmt.Println("comment count : ", len(contributionDetail.Comments))
 			// fmt.Println("like count : ", len(contributionDetail.Likes))
@@ -85,10 +92,17 @@ func ContributionGetAll(c echo.Context) error {
 					contributionDetail = ContributionFavrt(contributionid)
 
 					results.Data[x].CommentsCount = len(contributionDetail.Comments)
-					results.Data[x].LikesCount = len(contributionDetail.Likes)
+					// results.Data[x].LikesUserID = contributionDetail.Likes
 					// fmt.Println("contribution id : ", contributionid)
 					// fmt.Println("comment count : ", len(contributionDetail.Comments))
 					// fmt.Println("like count : ", len(contributionDetail.Likes))
+					if len(contributionDetail.Likes) > 0 {
+						for aa := range contributionDetail.Likes {
+							var userid shared.LikesUserID
+							userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+							results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+						}
+					}
 					break
 				}
 			}
@@ -104,11 +118,18 @@ func ContributionGetAll(c echo.Context) error {
 				results.Data[x].UserBio = userinfo.Bio
 				results.Data[x].UserType = userinfo.UserType
 				results.Data[x].CommentsCount = len(contributionDetail.Comments)
-				results.Data[x].LikesCount = len(contributionDetail.Likes)
+				// results.Data[x].LikesUserID = contributionDetail.Likes
+
 				// fmt.Println("contribution id : ", contributionid)
 				// fmt.Println("comment count : ", len(contributionDetail.Comments))
 				// fmt.Println("like count : ", len(contributionDetail.Likes))
-
+				if len(contributionDetail.Likes) > 0 {
+					for aa := range contributionDetail.Likes {
+						var userid shared.LikesUserID
+						userid.LikeUserID = contributionDetail.Likes[aa].LikeUserID
+						results.Data[x].LikesUserID = append(results.Data[x].LikesUserID, userid)
+					}
+				}
 				var data UserDetail
 				data.UserID = results.Data[x].UserID
 				data.UserBio = userinfo.Bio
