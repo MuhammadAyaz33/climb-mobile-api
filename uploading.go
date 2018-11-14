@@ -22,7 +22,7 @@ import (
 	"github.com/minio/minio-go"
 )
 
-const maxFileSize = 3048576 // 1MB
+const maxFileSize = 5048576 // 1MB
 
 func main() {
 	mux := gin.Default()
@@ -32,7 +32,7 @@ func main() {
 		Methods:         "GET, PUT, POST, DELETE",
 		RequestHeaders:  "Origin, Authorization, Content-Type",
 		ExposedHeaders:  "",
-		MaxAge:          50 * time.Second,
+		MaxAge:          60 * time.Second,
 		Credentials:     true,
 		ValidateHeaders: false,
 	}))
@@ -78,7 +78,7 @@ func imgAdd(ctx *gin.Context) {
 	name := header.Filename
 	extension := filepath.Ext(name)
 	//fmt.Println("file path %s", x)
-	fmt.Println()
+	// fmt.Println()
 	if header.Size > maxFileSize {
 		message := map[string]interface{}{}
 		message["status"] = "Invalid Size"
