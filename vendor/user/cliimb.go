@@ -1142,7 +1142,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 								   <tbody>
 									  <tr>
 										 <td align="left" valign="middle" style="font-family: Helvetica, arial, sans-serif; font-weight:300;font-size: 16px;color: #252C65" st-content="postfooter">
-											Visit <a href="#" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
+											Visit <a href="https://cliiimb.com" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
 										 </td>
 									  </tr>
 								  
@@ -1440,7 +1440,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 								   <tbody>
 									  <tr>
 										 <td align="left" valign="middle" style="font-family: Helvetica, arial, sans-serif; font-weight:300;font-size: 16px;color: #252C65" st-content="postfooter">
-											Visit <a href="#" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
+											Visit <a href="https://cliiimb.com" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
 										 </td>
 									  </tr>
 								  
@@ -1738,7 +1738,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 						   <tbody>
 							  <tr>
 								 <td align="left" valign="middle" style="font-family: Helvetica, arial, sans-serif; font-weight:300;font-size: 16px;color: #252C65" st-content="postfooter">
-									Visit <a href="#" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
+									Visit <a href="https://cliiimb.com" style="text-decoration: none; color: #ec1c24;font-weight:300;"> Cliiimb Site</a> 
 								 </td>
 							  </tr>
 						  
