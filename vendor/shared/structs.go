@@ -307,7 +307,11 @@ type GetContributionData struct {
 	UserBio              string
 	UserType             string
 	CommentsCount        int
-	LikesCount           int
+	LikesUserID          []LikesUserID
+	ProContributor       bool
+}
+type LikesUserID struct {
+	LikeUserID string
 }
 type Contributionres struct {
 	Data []ContributionData

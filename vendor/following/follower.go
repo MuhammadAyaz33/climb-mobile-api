@@ -54,6 +54,10 @@ type GetUserData struct {
 
 var response shared.Response
 
+type GetFollowing struct {
+	UserID string `json:"userid"`
+}
+
 //GET *********************************************************************************
 func GetAllData(c echo.Context) error {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -105,6 +109,68 @@ func Getfollower(c echo.Context) error {
 	response = shared.ReturnMessage(true, "Record Found", 200, results.Data[0])
 	defer session.Close()
 	return c.JSON(http.StatusOK, response)
+
+}
+
+func GetUserfollower(c echo.Context) error {
+
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
+	results := res{}
+
+	u := new(postData)
+	if err = c.Bind(&u); err != nil {
+	}
+	res := postData{}
+	//fmt.Println("this is C:",postData{})
+	res = *u
+	b, err := json.Marshal(res)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Println("get following")
+	// os.Stdout.Write(b)
+
+	var jsonBlob = []byte(b)
+	var r Res
+	error := json.Unmarshal(jsonBlob, &r)
+	if error != nil {
+		fmt.Println("error:", error)
+	}
+	//fmt.Println(res.Email)
+
+	//email :=c.FormValue("email")
+	email := res.UserID
+	//fmt.Println("/n", email)
+	//password:=c.FormValue("password")
+
+	// err = db.Find(bson.M{"$or": []bson.M{bson.M{"cms": cms}, bson.M{"name": name}}}).All(&results.Data)
+	// fmt.Println(email)
+	err = db.Find(bson.M{"follower.userfollowerid": email}).All(&results.Data)
+
+	if err != nil {
+		//log.Fatal(err)
+	}
+	if results.Data == nil {
+		defer session.Close()
+
+		return c.JSON(http.StatusOK, 0)
+	}
+	//fmt.Println(results)
+	var following []GetFollowing
+	for x := range results.Data {
+		var a GetFollowing
+		a.UserID = results.Data[x].UserID
+		following = append(following, a)
+	}
+	buff, _ := json.Marshal(&following)
+	//fmt.Println(string(buff))
+
+	json.Unmarshal(buff, &following)
+
+	defer session.Close()
+
+	return c.JSON(http.StatusOK, &following)
 
 }
 

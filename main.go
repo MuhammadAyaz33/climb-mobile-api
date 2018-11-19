@@ -38,6 +38,7 @@ func main() {
 	// CONTRIBUTION FUNCITON
 	//e.GET("/", getAll)
 	e.GET("/showallcontribution", contribution.ContributionGetAll)
+	e.GET("/showallmaincontribution", contribution.MainContributionGetAll)
 	e.GET("/showallevent", contribution.GetAllEvent)
 	e.POST("/addcontribution", contribution.Addcontribution)
 	e.POST("/searchcontribution", contribution.SearchContribution)                           //done
@@ -74,6 +75,7 @@ func main() {
 	//e.GET("/", following.GetAllData)
 	e.GET("/getallfollwerdata", following.GetAllData)
 	e.POST("/getfollower", following.Getfollower)
+	e.POST("/getuserfollower", following.GetUserfollower)
 	e.POST("/getfollowerbyemail", following.GetfollowerByEmail)
 	e.POST("/addmentor", following.AddMentor)
 	e.POST("/updateparentstatus", following.UpdateParentStatus)
