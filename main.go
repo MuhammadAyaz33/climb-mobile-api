@@ -75,7 +75,7 @@ func main() {
 	//e.GET("/", following.GetAllData)
 	e.GET("/getallfollwerdata", following.GetAllData)
 	e.POST("/getfollower", following.Getfollower)
-	e.POST("/getfollowing", following.Getfollowing)
+	e.POST("/getuserfollower", following.GetUserfollower)
 	e.POST("/getfollowerbyemail", following.GetfollowerByEmail)
 	e.POST("/addmentor", following.AddMentor)
 	e.POST("/updateparentstatus", following.UpdateParentStatus)

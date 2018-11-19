@@ -140,7 +140,7 @@ func Getfollower(c echo.Context) error {
 
 }
 
-func Getfollowing(c echo.Context) error {
+func GetUserfollower(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.MENTORCOLLECTION)
