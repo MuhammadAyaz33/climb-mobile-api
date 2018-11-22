@@ -155,14 +155,11 @@ func ContributionGetAll(c echo.Context) error {
 		// results.Data[x].UserType = userinfo.UserType
 
 	}
-
 	buff, _ := json.Marshal(&results)
-	//fmt.Println(string(buff))
-
 	json.Unmarshal(buff, &results)
+	response = shared.ReturnMessage(true, "Record Found", 200, results.Data)
 	defer session.Close()
-	return c.JSON(http.StatusOK, &results)
-
+	return c.JSON(http.StatusOK, response)
 }
 
 func MainContributionGetAll(c echo.Context) error {
