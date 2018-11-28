@@ -740,23 +740,30 @@ func UpdateProfile(c echo.Context) (err error) {
 		UpdateContributionProfilePic(profilepic, res.Email)
 
 	}
+
 	if res.ParentEmail != "" {
-		if result.ParentEmail == "" {
-			newdata.ParentEmail = res.ParentEmail
-			var maintoken string
-			maintoken = sendemail(res.ParentEmail, "parent", res.Email)
+		isExits := IsChildExits(res.Email, res.ParentEmail)
+		if isExits == true {
+			if result.ParentEmail == "" {
+				newdata.ParentEmail = res.ParentEmail
+				var maintoken string
+				maintoken = sendemail(res.ParentEmail, "parent", res.Email)
 
-			ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
-			//fmt.Println(maintoken)
-		}
-		if res.ParentEmail == result.ParentEmail {
-			newdata.ParentEmail = res.ParentEmail
+				ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
+				//fmt.Println(maintoken)
+			}
+			if res.ParentEmail == result.ParentEmail {
+				newdata.ParentEmail = res.ParentEmail
+			} else {
+				newdata.ParentEmail = res.ParentEmail
+				var maintoken string
+				maintoken = sendemail(res.ParentEmail, "parent", res.Email)
+
+				ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
+			}
 		} else {
-			newdata.ParentEmail = res.ParentEmail
-			var maintoken string
-			maintoken = sendemail(res.ParentEmail, "parent", res.Email)
-
-			ParentVerificationTokenSave(res.ParentEmail, maintoken, res.Email)
+			defer session.Close()
+			return c.JSON(http.StatusOK, "child already exits")
 		}
 
 	}
@@ -775,6 +782,24 @@ func UpdateProfile(c echo.Context) (err error) {
 	result1.MentorStatus = mentorstatus
 	defer session.Close()
 	return c.JSON(http.StatusOK, result1)
+}
+
+func IsChildExits(childemail string, parent string) bool {
+	session, err := shared.ConnectMongo(shared.DBURL)
+	db := session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
+
+	if err != nil {
+	}
+	result := ParentgetData{}
+	err1 := db.Find(bson.M{"kids.kidid": childemail, "parentemail": parent}).One(&result)
+	if err1 != nil {
+		fmt.Println("child not exits")
+		defer session.Close()
+		return true
+	}
+	fmt.Println("child already exits")
+	defer session.Close()
+	return false
 }
 func UpdateContributionProfilePic(picture string, email string) {
 	session, err := shared.ConnectMongo(shared.DBURL)
@@ -814,6 +839,9 @@ func ParentVerificationTokenSave(parentemail string, token string, email string)
 	var db *mgo.Collection
 
 	db = session.DB(shared.DBName).C(shared.PARENTCOLLECTION)
+
+	email = strings.ToLower(email)
+	parentemail = strings.ToLower(parentemail)
 
 	res := ParentpostData{}
 	res.ParentEmail = parentemail
@@ -1620,7 +1648,7 @@ func sendemail(email string, check string, useremail string) (s string) {
 										  <tr>
 											 <td style="font-family: Helvetica, arial, sans-serif; font-size: 16px; color: #0F1A59; text-align:left; line-height: 25px;
 		font-weight: bold;" st-content="fulltext-content">
-		Your Childern is recently try to register on Cliiimb. Please Click the below button and allow to join Cliiimb.
+		Your child has recently tried to register on Cliiimb. Please Click the below button and allow to join Cliiimb.
 											 </td>
 										  </tr>
 									

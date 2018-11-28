@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"shared"
+	"time"
 	"user"
 
 	"github.com/labstack/echo"
@@ -17,6 +17,11 @@ type FollowerGet struct {
 	UserFollowerID             string
 	UserFollowerName           string
 	UserFollowerProfilePicture string
+	NotificationTime           time.Time
+}
+type FollowerGetWithType struct {
+	FollowerGet
+	Type string
 }
 type LikesGet struct {
 	ContributionID         string
@@ -24,6 +29,11 @@ type LikesGet struct {
 	LikeUserID             string
 	LikeUserName           string
 	LikeUserProfilePicture string
+	NotificationTime       time.Time
+}
+type LikesGetWithType struct {
+	LikesGet
+	Type string
 }
 type CommentsGet struct {
 	ContributionID            string
@@ -31,6 +41,11 @@ type CommentsGet struct {
 	CommentUserID             string
 	CommentUserName           string
 	CommentUserProfilePicture string
+	NotificationTime          time.Time
+}
+type CommentsGetWithType struct {
+	CommentsGet
+	Type string
 }
 type MentorCreateContributionGet struct {
 	MentorID             string
@@ -38,6 +53,11 @@ type MentorCreateContributionGet struct {
 	MentorProfilePicture string
 	ContributionID       string
 	ContributionTitle    string
+	NotificationTime     time.Time
+}
+type MentorCreateContributionGetWithType struct {
+	MentorCreateContributionGet
+	Type string
 }
 type ChildCreateContributionGet struct {
 	ChildID             string
@@ -45,39 +65,90 @@ type ChildCreateContributionGet struct {
 	ChildProfilePicture string
 	ContributionID      string
 	ContributionTitle   string
+	NotificationTime    time.Time
+}
+type ChildCreateContributionGetWithType struct {
+	ChildCreateContributionGet
+	Type string
 }
 type AproveMentorGet struct {
 	MentorID             string
 	MentorUserName       string
 	MentorProfilePicture string
+	NotificationTime     time.Time
+}
+type AproveMentorGetWithType struct {
+	AproveMentorGet
+	Type string
 }
 type AproveMentorMsgGet struct {
 	MentorID             string
 	MentorUserName       string
 	MentorProfilePicture string
+	NotificationTime     time.Time
+}
+type AproveMentorMsgGetWithType struct {
+	AproveMentorMsgGet
+	Type string
 }
 type AdminAproveContributionGet struct {
 	ContributionID    string
 	ContributionTitle string
 	ContributionType  string
+	NotificationTime  time.Time
+}
+type AdminAproveContributionGetWithType struct {
+	AdminAproveContributionGet
+	Type string
 }
 type AdminRejectContributionGet struct {
 	ContributionID    string
 	ContributionTitle string
 	ContributionType  string
+	NotificationTime  time.Time
+}
+type AdminRejectContributionGetWithType struct {
+	AdminRejectContributionGet
+	Type string
 }
 type ChildSubmitMentorFormGet struct {
 	ChildID             string
 	ChildUserName       string
 	ChildProfilePicture string
+	NotificationTime    time.Time
+}
+type ChildSubmitMentorFormGetWithType struct {
+	ChildSubmitMentorFormGet
+	Type string
+}
+type RequestAproveGet struct {
+	RequestAprove    bool
+	NotificationTime time.Time
+}
+type RequestAproveGetWithType struct {
+	RequestAproveGet
+	Type string
+}
+type RequestRejectGet struct {
+	RequestReject    bool
+	NotificationTime time.Time
+}
+type RequestRejectGetWithType struct {
+	RequestRejectGet
+	Type string
+}
+type Detail struct {
+	UserID          string
+	NewNotification bool
+	Result          []interface{}
 }
 type MentoryHistorygetData struct {
 	ID                        bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	UserID                    string
-	AdminMentorRequest        bool
-	AdminMentorRequestReject  bool
-	ParentMentorRequest       bool
-	ParentMentorRequestReject bool
+	AdminMentorRequest        RequestAproveGet
+	AdminMentorRequestReject  RequestRejectGet
+	ParentMentorRequest       RequestAproveGet
+	ParentMentorRequestReject RequestRejectGet
 	NewNotification           bool
 	Followers                 []FollowerGet
 	ContributionLikes         []LikesGet
@@ -97,70 +168,88 @@ type res struct {
 //Mentor history post data
 
 type FollowerPost struct {
-	UserFollowerID             string `json:"userfollowerid"`
-	UserFollowerName           string `json:"userfollowername"`
-	UserFollowerProfilePicture string `json:"userfollowerprofilepicture"`
+	UserFollowerID             string    `json:"userfollowerid"`
+	UserFollowerName           string    `json:"userfollowername"`
+	UserFollowerProfilePicture string    `json:"userfollowerprofilepicture"`
+	NotificationTime           time.Time `json:"notificationtime"`
 }
 type LikesPost struct {
-	ContributionID         string `json:"contributionid"`
-	ContributionTitle      string `json:"contributiontitle"`
-	LikeUserID             string `json:"likeuserid"`
-	LikeUserName           string `json:"likeusername"`
-	LikeUserProfilePicture string `json:"likeuserprofilepicture"`
+	ContributionID         string    `json:"contributionid"`
+	ContributionTitle      string    `json:"contributiontitle"`
+	LikeUserID             string    `json:"likeuserid"`
+	LikeUserName           string    `json:"likeusername"`
+	LikeUserProfilePicture string    `json:"likeuserprofilepicture"`
+	NotificationTime       time.Time `json:"notificationtime"`
 }
 type CommentsPost struct {
-	ContributionID            string `json:"contributionid"`
-	ContributionTitle         string `json:"contributiontitle"`
-	CommentUserID             string `json:"commentuserid"`
-	CommentUserName           string `json:"commentusername"`
-	CommentUserProfilePicture string `json:"commentprofilepicture"`
+	ContributionID            string    `json:"contributionid"`
+	ContributionTitle         string    `json:"contributiontitle"`
+	CommentUserID             string    `json:"commentuserid"`
+	CommentUserName           string    `json:"commentusername"`
+	CommentUserProfilePicture string    `json:"commentprofilepicture"`
+	NotificationTime          time.Time `json:"notificationtime"`
 }
 type MentorCreateContributionPost struct {
-	MentorID             string `json:"mentorid"`
-	MentorUserName       string `json:"mentorusername"`
-	MentorProfilePicture string `json:"mentorprofilepicture"`
-	ContributionID       string `json:"contributionid"`
-	ContributionTitle    string `json:"contributiontitle"`
+	MentorID             string    `json:"mentorid"`
+	MentorUserName       string    `json:"mentorusername"`
+	MentorProfilePicture string    `json:"mentorprofilepicture"`
+	ContributionID       string    `json:"contributionid"`
+	ContributionTitle    string    `json:"contributiontitle"`
+	NotificationTime     time.Time `json:"notificationtime"`
 }
 type ChildCreateContributionPost struct {
-	ChildID             string `json:"childid"`
-	ChildUserName       string `json:"childusername"`
-	ChildProfilePicture string `json:"childprofilepicture"`
-	ContributionID      string `json:"contributionid"`
-	ContributionTitle   string `json:"contributiontitle"`
+	ChildID             string    `json:"childid"`
+	ChildUserName       string    `json:"childusername"`
+	ChildProfilePicture string    `json:"childprofilepicture"`
+	ContributionID      string    `json:"contributionid"`
+	ContributionTitle   string    `json:"contributiontitle"`
+	NotificationTime    time.Time `json:"notificationtime"`
 }
 type AproveMentorPost struct {
-	MentorID             string `json:"mentorid"`
-	MentorUserName       string `json:"mentorusername"`
-	MentorProfilePicture string `json:"mentorprofilepicture"`
+	MentorID             string    `json:"mentorid"`
+	MentorUserName       string    `json:"mentorusername"`
+	MentorProfilePicture string    `json:"mentorprofilepicture"`
+	NotificationTime     time.Time `json:"notificationtime"`
 }
 type AproveMentorMsgPost struct {
-	MentorID             string `json:"mentorid"`
-	MentorUserName       string `json:"mentorusername"`
-	MentorProfilePicture string `json:"mentorprofilepicture"`
+	MentorID             string    `json:"mentorid"`
+	MentorUserName       string    `json:"mentorusername"`
+	MentorProfilePicture string    `json:"mentorprofilepicture"`
+	NotificationTime     time.Time `json:"notificationtime"`
 }
 type AdminAproveContributionPost struct {
-	ContributionID    string `json:"contributionid"`
-	ContributionTitle string `json:"contributiontitle"`
-	ContributionType  string `json:"contributiontype"`
+	ContributionID    string    `json:"contributionid"`
+	ContributionTitle string    `json:"contributiontitle"`
+	ContributionType  string    `json:"contributiontype"`
+	NotificationTime  time.Time `json:"notificationtime"`
 }
 type AdminRejectContributionPost struct {
-	ContributionID    string `json:"contributionid"`
-	ContributionTitle string `json:"contributiontitle"`
-	ContributionType  string `json:"contributiontype"`
+	ContributionID    string    `json:"contributionid"`
+	ContributionTitle string    `json:"contributiontitle"`
+	ContributionType  string    `json:"contributiontype"`
+	NotificationTime  time.Time `json:"notificationtime"`
 }
 type ChildSubmitMentorFormPost struct {
-	ChildID             string `json:"childid"`
-	ChildUserName       string `json:"childusername"`
-	ChildProfilePicture string `json:"childprofilepicture"`
+	ChildID             string    `json:"childid"`
+	ChildUserName       string    `json:"childusername"`
+	ChildProfilePicture string    `json:"childprofilepicture"`
+	NotificationTime    time.Time `json:"notificationtime"`
+}
+type RequestAprovePost struct {
+	RequestAprove    bool      `json:"requestaprove"`
+	NotificationTime time.Time `json:"notificationtime"`
+}
+type RequestRejectPost struct {
+	RequestReject    bool      `json:"requestreject"`
+	NotificationTime time.Time `json:"notificationtime"`
 }
 type MentoryHistorypostData struct {
 	ID                        bson.ObjectId                  `json:"_id" bson:"_id,omitempty"`
 	UserID                    string                         `json:"userid"`
-	AdminMentorRequest        bool                           `json:"adminmentorrequestaprove"`
-	AdminMentorRequestReject  bool                           `json:"adminmentorrequestreject"`
-	ParentMentorRequest       bool                           `json:"parentmentorrequestaprove"`
-	ParentMentorRequestReject bool                           `json:"parentmentorrequestreject"`
+	AdminMentorRequest        RequestAprovePost              `json:"adminmentorrequestaprove"`
+	AdminMentorRequestReject  RequestRejectPost              `json:"adminmentorrequestreject"`
+	ParentMentorRequest       RequestAprovePost              `json:"parentmentorrequestaprove"`
+	ParentMentorRequestReject RequestRejectPost              `json:"parentmentorrequestreject"`
 	NewNotification           bool                           `json:"newnotification"`
 	Followers                 []FollowerPost                 `json:"followers"`
 	ContributionLikes         []LikesPost                    `json:"contributionlikes"`
@@ -193,12 +282,12 @@ func AddMentorFollwerHistory(userid string, followerid string) {
 	followeruserinfo := shared.UserinfoUpdategetData{}
 	bsonObjectID := bson.ObjectIdHex(followerid)
 	followeruserinfo = UserInfo(bsonObjectID)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		newfollower := MentoryHistorypostData{}
 		newfollower.UserID = userid
 		newfollower.NewNotification = true
-		item := FollowerPost{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture}
+		item := FollowerPost{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture, NotificationTime: currentdate}
 		newfollower.AddItemPostFollow(item)
 		db.Insert(newfollower)
 		//fmt.Println(newfollower)
@@ -212,7 +301,7 @@ func AddMentorFollwerHistory(userid string, followerid string) {
 					fmt.Println("user exit update history")
 					newdata := MentoryHistorygetData{}
 					newdata = result
-					item := FollowerGet{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture}
+					item := FollowerGet{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture, NotificationTime: currentdate}
 					newdata.AddItemGetFollow(item)
 					newdata.NewNotification = true
 					db.Update(result, newdata)
@@ -222,7 +311,7 @@ func AddMentorFollwerHistory(userid string, followerid string) {
 			fmt.Println("no data available")
 			newdata := MentoryHistorygetData{}
 			newdata = result
-			item := FollowerGet{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture}
+			item := FollowerGet{UserFollowerID: followerid, UserFollowerName: followeruserinfo.FullName, UserFollowerProfilePicture: followeruserinfo.ProfilePicture, NotificationTime: currentdate}
 			newdata.AddItemGetFollow(item)
 			newdata.NewNotification = true
 			db.Update(result, newdata)
@@ -258,13 +347,14 @@ func AddMentorLikeHistory(contributionid string, likeuserid string) {
 	UserIDconv := bson.ObjectIdHex(likeuserid)
 	userinfo := shared.UserinfoUpdategetData{}
 	userinfo = UserInfo(UserIDconv)
+	currentdate := time.Now().UTC()
 
 	if err != nil {
 		newlikes := MentoryHistorypostData{}
 		newlikes.UserID = contributiondetail.UserID
 		hexuserid := fmt.Sprintf("%x", string(userinfo.ID))
 		hexcontributionid := fmt.Sprintf("%x", string(contributiondetail.ID))
-		item := LikesPost{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, LikeUserID: hexuserid, LikeUserName: userinfo.FullName, LikeUserProfilePicture: userinfo.ProfilePicture}
+		item := LikesPost{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, LikeUserID: hexuserid, LikeUserName: userinfo.FullName, LikeUserProfilePicture: userinfo.ProfilePicture, NotificationTime: currentdate}
 		newlikes.AddItemPostLike(item)
 		newlikes.NewNotification = true
 		db.Insert(newlikes)
@@ -275,7 +365,7 @@ func AddMentorLikeHistory(contributionid string, likeuserid string) {
 		newdata = result
 		hexuserid := fmt.Sprintf("%x", string(userinfo.ID))
 		hexcontributionid := fmt.Sprintf("%x", string(contributiondetail.ID))
-		item := LikesGet{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, LikeUserID: hexuserid, LikeUserName: userinfo.FullName, LikeUserProfilePicture: userinfo.ProfilePicture}
+		item := LikesGet{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, LikeUserID: hexuserid, LikeUserName: userinfo.FullName, LikeUserProfilePicture: userinfo.ProfilePicture, NotificationTime: currentdate}
 		newdata.AddItemGetLike(item)
 		newdata.NewNotification = true
 		db.Update(result, newdata)
@@ -308,13 +398,13 @@ func AddMentorcommentHistory(contributionid string, commentuserid string) {
 	UserIDconv := bson.ObjectIdHex(commentuserid)
 	userinfo := shared.UserinfoUpdategetData{}
 	userinfo = UserInfo(UserIDconv)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		newlikes := MentoryHistorypostData{}
 		newlikes.UserID = contributiondetail.UserID
 		hexuserid := fmt.Sprintf("%x", string(userinfo.ID))
 		hexcontributionid := fmt.Sprintf("%x", string(contributiondetail.ID))
-		item := CommentsPost{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, CommentUserID: hexuserid, CommentUserName: userinfo.FullName, CommentUserProfilePicture: userinfo.ProfilePicture}
+		item := CommentsPost{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, CommentUserID: hexuserid, CommentUserName: userinfo.FullName, CommentUserProfilePicture: userinfo.ProfilePicture, NotificationTime: currentdate}
 		newlikes.AddItemPostComment(item)
 		newlikes.NewNotification = true
 		db.Insert(newlikes)
@@ -325,7 +415,7 @@ func AddMentorcommentHistory(contributionid string, commentuserid string) {
 		newdata = result
 		hexuserid := fmt.Sprintf("%x", string(userinfo.ID))
 		hexcontributionid := fmt.Sprintf("%x", string(contributiondetail.ID))
-		item := CommentsGet{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, CommentUserID: hexuserid, CommentUserName: userinfo.FullName, CommentUserProfilePicture: userinfo.ProfilePicture}
+		item := CommentsGet{ContributionID: hexcontributionid, ContributionTitle: contributiondetail.Title, CommentUserID: hexuserid, CommentUserName: userinfo.FullName, CommentUserProfilePicture: userinfo.ProfilePicture, NotificationTime: currentdate}
 		newdata.AddItemGetComment(item)
 		newdata.NewNotification = true
 		db.Update(result, newdata)
@@ -436,7 +526,7 @@ func GetUserMentorHistory(c echo.Context) error {
 
 	session, err := shared.ConnectMongo(shared.DBURL)
 	db := session.DB(shared.DBName).C(shared.MENTORHISTORYCOLLECTION)
-	results := res{}
+
 	//newdata := getData{}
 
 	u := new(GetUserData)
@@ -449,8 +539,8 @@ func GetUserMentorHistory(c echo.Context) error {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//fmt.Println("this is res=", res)
-	os.Stdout.Write(b)
+	fmt.Println("get notification")
+	// os.Stdout.Write(b)
 
 	var jsonBlob = []byte(b)
 	var r Res
@@ -458,16 +548,170 @@ func GetUserMentorHistory(c echo.Context) error {
 	if error != nil {
 		fmt.Println("error:", error)
 	}
-
-	err = db.Find(bson.M{"userid": res.UserID}).All(&results.Data)
+	results := MentoryHistorygetData{}
+	err = db.Find(bson.M{"userid": res.UserID}).One(&results)
 	if err != nil {
 		defer session.Close()
-		return c.JSON(http.StatusOK, &results)
+		return c.JSON(http.StatusOK, 0)
 	}
+	var all []interface{}
+
+	if results.ParentMentorRequestReject.RequestReject == true {
+
+		a := RequestRejectGetWithType{}
+		a.RequestRejectGet = results.ParentMentorRequestReject
+		a.Type = "ParentMentorRequestReject"
+		s := []interface{}{a}
+		all = append(s, all...)
+	}
+
+	if results.ParentMentorRequest.RequestAprove == true {
+
+		a := RequestAproveGetWithType{}
+		a.RequestAproveGet = results.ParentMentorRequest
+		a.Type = "ParentMentorRequest"
+		s := []interface{}{a}
+		all = append(s, all...)
+	}
+
+	if results.AdminMentorRequestReject.RequestReject == true {
+
+		a := RequestRejectGetWithType{}
+		a.RequestRejectGet = results.AdminMentorRequestReject
+		a.Type = "AdminMentorRequestReject"
+		s := []interface{}{a}
+		all = append(s, all...)
+	}
+
+	if results.AdminMentorRequest.RequestAprove == true {
+
+		a := RequestAproveGetWithType{}
+		a.RequestAproveGet = results.AdminMentorRequest
+		a.Type = "AdminMentorRequest"
+		s := []interface{}{a}
+		all = append(s, all...)
+	}
+	if len(results.MentorMsgAprovel) > 0 {
+		s := make([]interface{}, len(results.MentorMsgAprovel))
+		for i, v := range results.MentorMsgAprovel {
+			a := AproveMentorMsgGetWithType{}
+			a.AproveMentorMsgGet = v
+			a.Type = "MentorMsgAprovel"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+
+	if len(results.MentorAprovel) > 0 {
+		s := make([]interface{}, len(results.MentorAprovel))
+		for i, v := range results.MentorAprovel {
+			a := AproveMentorGetWithType{}
+			a.AproveMentorGet = v
+			a.Type = "MentorAprovel"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+
+	if len(results.ChildSubmitMentorForm) > 0 {
+		s := make([]interface{}, len(results.ChildSubmitMentorForm))
+		for i, v := range results.ChildSubmitMentorForm {
+			a := ChildSubmitMentorFormGetWithType{}
+			a.ChildSubmitMentorFormGet = v
+			a.Type = "ChildSubmitMentorForm"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+
+	if len(results.ChildCreateContribution) > 0 {
+		s := make([]interface{}, len(results.ChildCreateContribution))
+		for i, v := range results.ChildCreateContribution {
+			a := ChildCreateContributionGetWithType{}
+			a.ChildCreateContributionGet = v
+			a.Type = "ChildCreateContribution"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+
+	if len(results.MentorCreateContribution) > 0 {
+		s := make([]interface{}, len(results.MentorCreateContribution))
+		for i, v := range results.MentorCreateContribution {
+			a := MentorCreateContributionGetWithType{}
+			a.MentorCreateContributionGet = v
+			a.Type = "MentorCreateContribution"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+
+	if len(results.ContributionComments) > 0 {
+		s := make([]interface{}, len(results.ContributionComments))
+		for i, v := range results.ContributionComments {
+			a := CommentsGetWithType{}
+			a.CommentsGet = v
+			a.Type = "ContributionComment"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+
+	if len(results.Followers) > 0 {
+		s := make([]interface{}, len(results.Followers))
+		for i, v := range results.Followers {
+			a := FollowerGetWithType{}
+			a.FollowerGet = v
+			a.Type = "Followers"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+	if len(results.ContributionLikes) > 0 {
+		s := make([]interface{}, len(results.ContributionLikes))
+		for i, v := range results.ContributionLikes {
+			a := LikesGetWithType{}
+			a.LikesGet = v
+			a.Type = "ContributionLike"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+	if len(results.AdminAproveContribution) > 0 {
+		s := make([]interface{}, len(results.AdminAproveContribution))
+		for i, v := range results.AdminAproveContribution {
+			a := AdminAproveContributionGetWithType{}
+			a.AdminAproveContributionGet = v
+			a.Type = "AdminAproveContribution"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+	if len(results.AdminRejectContribution) > 0 {
+		s := make([]interface{}, len(results.AdminRejectContribution))
+		for i, v := range results.AdminRejectContribution {
+			a := AdminRejectContributionGetWithType{}
+			a.AdminRejectContributionGet = v
+			a.Type = "AdminRejectContribution"
+			s[i] = a
+		}
+		all = append(s, all...)
+	}
+
+	var detail Detail
+	detail.NewNotification = results.NewNotification
+	detail.UserID = results.UserID
+	detail.Result = all
+	// ss := []interface{}{detail}
+	// all = append(ss, all...)
+
 	//ParentInfo("mohd.kasimnazesser@gmail.com")
+	// x := all[0].([]interface{})["NotificationTime"].(string)
+	// spew.Dump(all)
+	// fmt.Println(x)
 	defer session.Close()
 
-	return c.JSON(http.StatusOK, &results)
+	return c.JSON(http.StatusOK, &detail)
 
 }
 
@@ -481,7 +725,7 @@ func AddMentorCreatContributionHistory(mentorid string) {
 	result := MentoryHistorygetData{}
 	followerresult := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": mentorid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 
 	} else {
@@ -503,7 +747,7 @@ func AddMentorCreatContributionHistory(mentorid string) {
 			if err != nil {
 				createcontribution := MentoryHistorypostData{}
 				createcontribution.UserID = userid
-				item := MentorCreateContributionPost{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+				item := MentorCreateContributionPost{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle, NotificationTime: currentdate}
 				createcontribution.AddItemPostCreateContribution(item)
 				createcontribution.NewNotification = true
 				db.Insert(createcontribution)
@@ -511,7 +755,7 @@ func AddMentorCreatContributionHistory(mentorid string) {
 			} else {
 				newdata := MentoryHistorygetData{}
 				newdata = followerresult
-				item := MentorCreateContributionGet{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+				item := MentorCreateContributionGet{MentorID: hexmentorid, MentorUserName: mentoruserinfo.FullName, MentorProfilePicture: mentoruserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle, NotificationTime: currentdate}
 				newdata.AddItemGetCreateContribution(item)
 				newdata.NewNotification = true
 				db.Update(followerresult, newdata)
@@ -571,6 +815,7 @@ func AddChildCreatContributionHistory(mentorid string) {
 
 	childinfo := user.ParentgetData{}
 	childinfo = ParentInfo(kidemail)
+	currentdate := time.Now().UTC()
 	if childinfo.ParentEmail != "" {
 		parentinfo := shared.UserinfoUpdategetData{}
 		parentinfo = UserInfoByEmail(childinfo.ParentEmail)
@@ -589,7 +834,7 @@ func AddChildCreatContributionHistory(mentorid string) {
 			contributionid := fmt.Sprintf("%x", string(childcontributiondetail.Data[l-1].ID))
 			contributiontitle := childcontributiondetail.Data[l-1].Title
 
-			item := ChildCreateContributionPost{ChildID: childid, ChildUserName: kiduserinfo.FullName, ChildProfilePicture: kiduserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+			item := ChildCreateContributionPost{ChildID: childid, ChildUserName: kiduserinfo.FullName, ChildProfilePicture: kiduserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle, NotificationTime: currentdate}
 			createcontribution.AddItemPostCreateContributionKid(item)
 			createcontribution.NewNotification = true
 			db.Insert(createcontribution)
@@ -603,7 +848,7 @@ func AddChildCreatContributionHistory(mentorid string) {
 
 			newdata := MentoryHistorygetData{}
 			newdata = result
-			item := ChildCreateContributionGet{ChildID: childid, ChildUserName: kiduserinfo.FullName, ChildProfilePicture: kiduserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle}
+			item := ChildCreateContributionGet{ChildID: childid, ChildUserName: kiduserinfo.FullName, ChildProfilePicture: kiduserinfo.ProfilePicture, ContributionID: contributionid, ContributionTitle: contributiontitle, NotificationTime: currentdate}
 			newdata.AddItemGetCreateContributionKid(item)
 			newdata.NewNotification = true
 			db.Update(result, newdata)
@@ -638,12 +883,12 @@ func AddMentorAproveHistory(Userid string, followerid string) {
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		mentoraprove := MentoryHistorypostData{}
 		mentoraprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		item := AproveMentorPost{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		item := AproveMentorPost{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture, NotificationTime: currentdate}
 		mentoraprove.AddItemPostAproveMentor(item)
 		mentoraprove.NewNotification = true
 		db.Insert(mentoraprove)
@@ -653,7 +898,7 @@ func AddMentorAproveHistory(Userid string, followerid string) {
 		newdata := MentoryHistorygetData{}
 		newdata = result
 
-		item := AproveMentorGet{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		item := AproveMentorGet{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture, NotificationTime: currentdate}
 		newdata.AddItemGetAproveMentor(item)
 		newdata.NewNotification = true
 		db.Update(result, newdata)
@@ -688,12 +933,13 @@ func AddMentorMsgAproveHistory(Userid string, followerid string) {
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
+	currentdate := time.Now().UTC()
 
 	if err != nil {
 		mentoraprove := MentoryHistorypostData{}
 		mentoraprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		item := AproveMentorMsgPost{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		item := AproveMentorMsgPost{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture, NotificationTime: currentdate}
 		mentoraprove.AddItemPostAproveMentorMsg(item)
 		mentoraprove.NewNotification = true
 		db.Insert(mentoraprove)
@@ -703,7 +949,7 @@ func AddMentorMsgAproveHistory(Userid string, followerid string) {
 		newdata := MentoryHistorygetData{}
 		newdata = result
 
-		item := AproveMentorMsgGet{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture}
+		item := AproveMentorMsgGet{MentorID: followerid, MentorUserName: followerinfo.FullName, MentorProfilePicture: followerinfo.ProfilePicture, NotificationTime: currentdate}
 		newdata.AddItemGetAproveMentorMsg(item)
 		newdata.NewNotification = true
 		db.Update(result, newdata)
@@ -730,12 +976,12 @@ func AddAdminAproveContributionHistory(Userid string, contributionid string, con
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		adminaprove := MentoryHistorypostData{}
 		adminaprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		item := AdminAproveContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
+		item := AdminAproveContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype, NotificationTime: currentdate}
 		adminaprove.AddItemPostAdminAprove(item)
 		adminaprove.NewNotification = true
 		db.Insert(adminaprove)
@@ -745,7 +991,7 @@ func AddAdminAproveContributionHistory(Userid string, contributionid string, con
 		newdata := MentoryHistorygetData{}
 		newdata = result
 
-		item := AdminAproveContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
+		item := AdminAproveContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype, NotificationTime: currentdate}
 		newdata.AddItemGetAdminAprove(item)
 		newdata.NewNotification = true
 		db.Update(result, newdata)
@@ -763,12 +1009,12 @@ func AddAdminRejectContributionHistory(Userid string, contributionid string, con
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		adminaprove := MentoryHistorypostData{}
 		adminaprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		item := AdminRejectContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
+		item := AdminRejectContributionPost{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype, NotificationTime: currentdate}
 		adminaprove.AddItemPostAdminReject(item)
 		adminaprove.NewNotification = true
 		db.Insert(adminaprove)
@@ -778,7 +1024,7 @@ func AddAdminRejectContributionHistory(Userid string, contributionid string, con
 		newdata := MentoryHistorygetData{}
 		newdata = result
 
-		item := AdminRejectContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype}
+		item := AdminRejectContributionGet{ContributionID: contributionid, ContributionTitle: contributiontitle, ContributionType: contributiontype, NotificationTime: currentdate}
 		newdata.AddItemGetAdminReject(item)
 		newdata.NewNotification = true
 		db.Update(result, newdata)
@@ -814,12 +1060,15 @@ func AddAdminMentorRequestApprove(Userid string) {
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		adminaprove := MentoryHistorypostData{}
 		adminaprove.UserID = Userid
+		aproverequest := RequestAprovePost{}
+		aproverequest.RequestAprove = true
+		aproverequest.NotificationTime = currentdate
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		adminaprove.AdminMentorRequest = true
+		adminaprove.AdminMentorRequest = aproverequest
 		adminaprove.NewNotification = true
 		db.Insert(adminaprove)
 		//fmt.Println(newfollower)
@@ -827,7 +1076,10 @@ func AddAdminMentorRequestApprove(Userid string) {
 		//fmt.Println("user exit update history")
 		newdata := MentoryHistorygetData{}
 		newdata = result
-		newdata.AdminMentorRequest = true
+		aproverequest := RequestAproveGet{}
+		aproverequest.RequestAprove = true
+		aproverequest.NotificationTime = currentdate
+		newdata.AdminMentorRequest = aproverequest
 		newdata.NewNotification = true
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
@@ -844,12 +1096,16 @@ func AddAdminMentorRequestReject(Userid string) {
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		adminaprove := MentoryHistorypostData{}
 		adminaprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		adminaprove.AdminMentorRequestReject = true
+		rejectrequest := RequestRejectPost{}
+		rejectrequest.RequestReject = true
+		rejectrequest.NotificationTime = currentdate
+
+		adminaprove.AdminMentorRequestReject = rejectrequest
 		adminaprove.NewNotification = true
 		db.Insert(adminaprove)
 		//fmt.Println(newfollower)
@@ -857,7 +1113,12 @@ func AddAdminMentorRequestReject(Userid string) {
 		//fmt.Println("user exit update history")
 		newdata := MentoryHistorygetData{}
 		newdata = result
-		newdata.AdminMentorRequestReject = true
+
+		rejectrequest := RequestRejectGet{}
+		rejectrequest.RequestReject = true
+		rejectrequest.NotificationTime = currentdate
+
+		newdata.AdminMentorRequestReject = rejectrequest
 		newdata.NewNotification = true
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
@@ -874,12 +1135,17 @@ func AddParentMentorRequestApprove(Userid string) {
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		adminaprove := MentoryHistorypostData{}
 		adminaprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		adminaprove.ParentMentorRequest = true
+
+		aproverequest := RequestAprovePost{}
+		aproverequest.RequestAprove = true
+		aproverequest.NotificationTime = currentdate
+
+		adminaprove.ParentMentorRequest = aproverequest
 		adminaprove.NewNotification = true
 		db.Insert(adminaprove)
 		//fmt.Println(newfollower)
@@ -887,7 +1153,12 @@ func AddParentMentorRequestApprove(Userid string) {
 		//fmt.Println("user exit update history")
 		newdata := MentoryHistorygetData{}
 		newdata = result
-		newdata.ParentMentorRequest = true
+
+		aproverequest := RequestAproveGet{}
+		aproverequest.RequestAprove = true
+		aproverequest.NotificationTime = currentdate
+
+		newdata.ParentMentorRequest = aproverequest
 		newdata.NewNotification = true
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
@@ -904,12 +1175,16 @@ func AddParentMentorRequestReject(Userid string) {
 
 	result := MentoryHistorygetData{}
 	err = db.Find(bson.M{"userid": Userid}).One(&result)
-
+	currentdate := time.Now().UTC()
 	if err != nil {
 		adminaprove := MentoryHistorypostData{}
 		adminaprove.UserID = Userid
 		//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-		adminaprove.ParentMentorRequestReject = true
+		rejectrequest := RequestRejectPost{}
+		rejectrequest.RequestReject = true
+		rejectrequest.NotificationTime = currentdate
+
+		adminaprove.ParentMentorRequestReject = rejectrequest
 		adminaprove.NewNotification = true
 		db.Insert(adminaprove)
 		//fmt.Println(newfollower)
@@ -917,7 +1192,10 @@ func AddParentMentorRequestReject(Userid string) {
 		//fmt.Println("user exit update history")
 		newdata := MentoryHistorygetData{}
 		newdata = result
-		newdata.ParentMentorRequestReject = true
+		rejectrequest := RequestRejectGet{}
+		rejectrequest.RequestReject = true
+		rejectrequest.NotificationTime = currentdate
+		newdata.ParentMentorRequestReject = rejectrequest
 		newdata.NewNotification = true
 		db.Update(result, newdata)
 		//AddMentorCreatContributionHistory(contributiondetail.UserID)
@@ -978,6 +1256,7 @@ func AddChildMentorRequestFormHistory(Userid string) {
 	UserIDconv := bson.ObjectIdHex(Userid)
 	userinfo := shared.UserinfoUpdategetData{}
 	userinfo = UserInfo(UserIDconv)
+	currentdate := time.Now().UTC()
 	if userinfo.ParentEmail != "" {
 		result := MentoryHistorygetData{}
 		parentinfo := UserInfoByEmail(userinfo.ParentEmail)
@@ -990,7 +1269,7 @@ func AddChildMentorRequestFormHistory(Userid string) {
 			mentoraprove := MentoryHistorypostData{}
 			mentoraprove.UserID = parentid
 			//followerid := fmt.Sprintf("%x", string(followerinfo.ID))
-			item := ChildSubmitMentorFormPost{ChildID: Userid, ChildUserName: userinfo.FullName, ChildProfilePicture: userinfo.ProfilePicture}
+			item := ChildSubmitMentorFormPost{ChildID: Userid, ChildUserName: userinfo.FullName, ChildProfilePicture: userinfo.ProfilePicture, NotificationTime: currentdate}
 			mentoraprove.AddMentorFormRequestPost(item)
 			mentoraprove.NewNotification = true
 			db.Insert(mentoraprove)
@@ -1000,7 +1279,7 @@ func AddChildMentorRequestFormHistory(Userid string) {
 			newdata := MentoryHistorygetData{}
 			newdata = result
 
-			item := ChildSubmitMentorFormGet{ChildID: Userid, ChildUserName: userinfo.FullName, ChildProfilePicture: userinfo.ProfilePicture}
+			item := ChildSubmitMentorFormGet{ChildID: Userid, ChildUserName: userinfo.FullName, ChildProfilePicture: userinfo.ProfilePicture, NotificationTime: currentdate}
 			newdata.AddMentorFormRequestGet(item)
 			newdata.NewNotification = true
 			db.Update(result, newdata)
