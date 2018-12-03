@@ -556,7 +556,7 @@ func GetUserMentorHistory(c echo.Context) error {
 	if err != nil {
 		response = shared.ReturnMessage(false, "Record not found", 404, "")
 		defer session.Close()
-		return c.JSON(http.StatusOK, 0)
+		return c.JSON(http.StatusOK, response)
 	}
 	var all []interface{}
 
@@ -706,6 +706,9 @@ func GetUserMentorHistory(c echo.Context) error {
 	detail.NewNotification = results.NewNotification
 	detail.UserID = results.UserID
 	detail.Result = all
+
+	response = shared.ReturnMessage(true, "found", 200, all)
+
 	// ss := []interface{}{detail}
 	// all = append(ss, all...)
 
@@ -715,7 +718,7 @@ func GetUserMentorHistory(c echo.Context) error {
 	// fmt.Println(x)
 	defer session.Close()
 
-	return c.JSON(http.StatusOK, &detail)
+	return c.JSON(http.StatusOK, response)
 
 }
 
